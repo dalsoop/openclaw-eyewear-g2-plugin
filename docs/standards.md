@@ -11,7 +11,7 @@
 - 스크립트는 이런 값을 실행 시 로컬 설정에서 읽는다. 저장소에 기본값으로 박지 않는다(예: 휴대폰 노드는 `openclaw nodes status --json`에서 고른다).
 - OcuClaw 원본 코드를 복사하지 않는다. 허용되는 것은 훅 위치를 찾는 한 줄짜리 기준 문자열뿐이다. 원본과 연속 4줄 이상(공백 제외 40자 이상)이 같거나 파일이 바이트 단위로 같으면 위반이다.
 - `.gitignore`에 든 경로를 `git add -f`로 넣지 않는다.
-- **검증 게이트**: `git fetch origin` 뒤 커밋을 올리기 전 `scripts/public-safety-scan.sh --base origin/main --head HEAD`가 `public-safety-scan: clean`으로 끝나야 한다(종료 코드 0). 기본 실행도 같은 PR 모드다. `base...head`의 merge base 이후 head 쪽 커밋의 메타데이터·메시지·추가/변경 blob(중간에 넣었다 지운 내용과 옛 blob의 재도입 포함), 각 커밋의 금지 경로, 인덱스와 작업 트리(무시되지 않은 미추적 파일 포함)를 검사한다. 1이면 올리지 않는다. 2(잘못된 인자·ref, 공통 조상 없음, shallow/graft 이력, dist 없음 등)도 통과가 아니다. 이 검사는 설치된 OcuClaw를 기준으로 비교하므로 OcuClaw가 설치된 Mac에서만 의미가 있다.
+- **검증 게이트**: `git fetch origin` 뒤 커밋을 올리기 전 `scripts/public-safety-scan.sh --base origin/main --head HEAD`가 `public-safety-scan: clean`으로 끝나야 한다(종료 코드 0). 기본 실행도 같은 PR 모드다. `base..head`(head에서 닿고 base에서는 닿지 않는 커밋, 즉 PR이 더하는 커밋. 공통 조상이 여럿이어도 base에 이미 있는 커밋은 들어가지 않는다)의 메타데이터·메시지·추가/변경 blob(중간에 넣었다 지운 내용과 옛 blob의 재도입 포함), 각 커밋의 금지 경로, 인덱스와 작업 트리(무시되지 않은 미추적 파일 포함)를 검사한다. 1이면 올리지 않는다. 2(잘못된 인자·ref, 공통 조상 없음, shallow/graft 이력, dist 없음 등)도 통과가 아니다. 이 검사는 설치된 OcuClaw를 기준으로 비교하므로 OcuClaw가 설치된 Mac에서만 의미가 있다.
 - **기존 공개 이력의 감사**: 2026-10-30 정책으로 PR 게이트는 main에 이미 있는 커밋을 차단 대상으로 삼지 않는다. 이미 공개된 메타데이터를 다시 검사해도 기존 노출이 사라지지 않으므로 main 이력을 강제로 다시 쓰지 않는다. 대신 `scripts/public-safety-scan.sh --all`은 모든 ref의 전체 이력을 계속 검사하고, `docs/public-safety-baseline.json`의 SHA·규칙에 해당하는 기존 발견에도 `FAIL`을 출력하고 1로 끝난다. 기준선은 기록·표시용이지 예외 허용 목록이 아니며 새 커밋의 동일한 위반을 면제하지 않는다. 전수 감사의 실패를 PR 모드의 성공으로 고쳐 적지 않는다.
 - 이력 검사는 모든 Git 호출에서 replacement objects를 끈다. shallow 저장소와 legacy graft 파일/환경은 완전한 원본 이력을 증명할 수 없어 두 모드 모두 2로 거부한다. 전수 감사는 커밋 외에 blob/tree를 직접 가리키는 ref의 모든 도달 가능한 blob도 검사한다.
 - 검사 규칙의 정규식은 문자열을 쪼개 조립한다. 검사 스크립트 자신이나 문서에 검사 대상 패턴(tailnet 도메인 접미사, `Bearer` 뒤 긴 토큰, 키 접두어)을 그대로 쓰면 자기 자신이 걸린다.
@@ -43,7 +43,7 @@
 
 ## 시험
 
-- 단위 시험: `/opt/homebrew/opt/node/bin/node --test ocuclaw-patch/test/ even-ai-settings/test/ scripts/lib/ scripts/patch-watch/`가 모두 통과해야 한다(지금 123개). 주입 코드, 다듬기 규칙, 허용 목록 계산, 감시 판단 로직을 바꾸면 이 명령을 돌린다.
+- 단위 시험: `/opt/homebrew/opt/node/bin/node --test ocuclaw-patch/test/ even-ai-settings/test/ scripts/lib/ scripts/patch-watch/`가 모두 통과해야 한다(지금 124개). 주입 코드, 다듬기 규칙, 허용 목록 계산, 감시 판단 로직을 바꾸면 이 명령을 돌린다.
 - 다듬기 규칙(기호 정리·길이 정책)을 바꾸면 경계 사례 시험(정확히 350, 351, 경계 없음, `다.` 끝, 이모지만, 빈 답, `…` 중복)을 함께 고친다.
 - 패치 지점을 바꾸면 깨끗한 원본 사본 기준 시험(`ocuclaw-patch/test/patcher.test.mjs`: 원본은 전부 빠짐, 적용 후 통과, 두 번 적용해도 변화 없음, 훅 하나 지우면 그 지점만 지목, 기준 문자열 하나 없으면 아무것도 안 씀)이 통과해야 한다.
 - 설치본에 영향을 주는 변경은 단위 시험만으로 통과가 아니다. `scripts/ocuclaw-patch.sh all`(적용 → 재시작 → 검사 → `verify-live`)이 `verify-live: PASS`로 끝나야 한다.

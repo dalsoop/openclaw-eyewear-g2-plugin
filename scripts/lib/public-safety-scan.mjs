@@ -49,8 +49,12 @@ export function scan({ root, dist, mode = "pr", base = "origin/main", head = "HE
   if (mode !== "pr" && mode !== "all") throw new Error("invalid mode");
   // Fail closed on an unknown base/head or an unrelated history; never fall back to all/empty.
   const headOid = resolve(head);
-  const mergeBase = mode === "pr" ? git(["merge-base", resolve(base), headOid]).toString().trim() : null;
-  const revisions = mode === "all" ? ["--all"] : [headOid, `^${mergeBase}`];
+  const baseOid = mode === "pr" ? resolve(base) : null;
+  // merge-base only rejects unrelated histories. The range is base..head (commits
+  // reachable from head but not from base): with several merge bases (criss-cross),
+  // excluding one of them would pull commits already on base into the PR gate.
+  if (mode === "pr") git(["merge-base", baseOid, headOid]);
+  const revisions = mode === "all" ? ["--all"] : [headOid, "--not", baseOid];
   const findings = [];
   const report = (where, rule, commit = null) => findings.push({ where, rule, commit });
   const refHashes = new Map();
@@ -147,7 +151,7 @@ export function scan({ root, dist, mode = "pr", base = "origin/main", head = "HE
     else if (stat.isFile()) scanContent(`working tree ${p}`, fs.readFileSync(full));
     else throw new Error("unsupported working-tree entry");
   }
-  return { findings, mode, mergeBase, headOid, blobs: blobPaths.size, commits: commits.length, files: tree.length, references: refHashes.size };
+  return { findings, mode, baseOid, headOid, blobs: blobPaths.size, commits: commits.length, files: tree.length, references: refHashes.size };
 }
 
 export function main(args) {
@@ -170,16 +174,19 @@ export function main(args) {
     }
     if (options.mode === "all" && (options.base || options.head)) throw new Error("conflicting modes");
     const result = scan(options);
-    console.log(`scope ${result.mode}${result.mergeBase ? ` ${result.mergeBase}...${result.headOid}` : " all refs"}; scanned ${result.blobs} history blobs, ${result.commits} commits, ${result.files} working-tree files; reference ${result.references} OcuClaw dist files`);
+    console.log(`scope ${result.mode}${result.baseOid ? ` ${result.baseOid}..${result.headOid}` : " all refs"}; scanned ${result.blobs} history blobs, ${result.commits} commits, ${result.files} working-tree files; reference ${result.references} OcuClaw dist files`);
     // The baseline only labels full-audit findings. It never exempts or suppresses anything.
     let known = [];
     if (result.mode === "all") {
       known = JSON.parse(fs.readFileSync(path.join(root, "docs/public-safety-baseline.json"), "utf8")).findings;
       if (!Array.isArray(known)) throw new Error("invalid baseline");
     }
+    const printed = new Set();
     for (const finding of result.findings) {
       const label = known.some((item) => item.commit === finding.commit && item.rule === finding.rule) ? " (known baseline)" : "";
-      console.log(`FAIL ${finding.where}: ${finding.rule}${label}`);
+      const line = `FAIL ${finding.where}: ${finding.rule}${label}`;
+      if (!printed.has(line)) console.log(line);
+      printed.add(line);
     }
     if (result.findings.length) return 1;
     console.log("public-safety-scan: clean");

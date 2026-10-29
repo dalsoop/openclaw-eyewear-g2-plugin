@@ -5,7 +5,7 @@
 - **현상**: 2026-10-30 전수 감사에서 PR #1 병합 커밋 `6d6b32041a3f2f5322fdd4c0890576e32db2bdd9`의 작성자·커미터 메타데이터 2건이 걸린다. 작성자의 개인 이메일은 이미 공개 이력에 노출돼 있다(값은 적지 않는다). 커미터는 GitHub 자체 계정이며 사용자별 noreply 주소가 아니다. 옛 OcuClaw blob 중복 발견은 공개 전 이력 정리로 사라졌다.
 - **영향**: 새 PR이 기존 노출을 없애지는 못한다. `--all` 전수 감사는 이 두 발견을 계속 `FAIL`로 출력하고 1로 끝난다. PR 모드가 clean이어도 전수 감사가 clean이라는 뜻은 아니다.
 - **지금 못 고치는 이유**: main 이력을 force-push하지 않는 정책이므로 기존 커밋 메타데이터를 다시 쓰지 않는다.
-- **방법**: `docs/public-safety-baseline.json`에 SHA·규칙·사유만 기록했다(한 커밋의 두 발견). 2026-10-30 정책으로 PR 게이트는 merge base 이후 새 커밋과 인덱스·작업 트리를 검사하고, 전수 감사는 모든 ref를 검사한다. 기준선은 면제 목록이 아니다. 새 병합 작성자는 `gh pr merge --author-email <GitHub noreply 주소>`로 맞춘다.
+- **방법**: `docs/public-safety-baseline.json`에 SHA·규칙·사유만 기록했다(한 커밋의 두 발견). 2026-10-30 정책으로 PR 게이트는 PR이 더하는 커밋(`base..head`)과 인덱스·작업 트리를 검사하고, 전수 감사는 모든 ref를 검사한다. 기준선은 면제 목록이 아니다. 새 병합 작성자는 `gh pr merge --author-email <GitHub noreply 주소>`로 맞춘다.
 
 ## opencodex 키가 자리 채움 값이다
 
