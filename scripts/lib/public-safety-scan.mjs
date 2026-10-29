@@ -80,22 +80,20 @@ export function scan({ root, dist, mode = "pr", base = "origin/main", head = "HE
     }
   }
 
-  // rev-list exclusions remove inherited blobs but retain intermediate added/deleted content.
-  const objects = git(["rev-list", "--objects", ...revisions]).toString().trim().split("\n").filter(Boolean);
   const blobPaths = new Map();
-  if (objects.length) {
-    const types = git(["cat-file", "--batch-check=%(objectname) %(objecttype)"], {
-      input: objects.map((line) => line.split(" ")[0]).join("\n") + "\n",
-    }).toString().trim().split("\n");
-    const typeOf = new Map(types.map((line) => line.split(" ")));
-    for (const line of objects) {
-      const sp = line.indexOf(" ");
-      const id = sp < 0 ? line : line.slice(0, sp);
-      if (typeOf.get(id) === "blob") blobPaths.set(id, sp < 0 ? "(unnamed)" : line.slice(sp + 1));
-    }
-  }
   const commits = git(["rev-list", ...revisions]).toString().trim().split("\n").filter(Boolean);
   for (const commit of commits) {
+    // Inspect additions/modifications against every parent, not only new object IDs.
+    // A PR can reintroduce an old base blob and delete it again before HEAD.
+    const changes = git(["diff-tree", "--root", "--no-commit-id", "--raw", "--no-abbrev", "-r", "-m", "-z", "--no-renames", commit]).toString().split("\0").filter(Boolean);
+    for (let i = 0; i < changes.length; i += 2) {
+      const [, newMode, , newId] = changes[i].split(" ");
+      const p = changes[i + 1];
+      if (!p || !newId) throw new Error("invalid diff output");
+      if (newMode === "000000") continue;
+      if (newMode === "160000") throw new Error("submodule cannot be scanned");
+      blobPaths.set(newId, p);
+    }
     // Check each commit's full path tree too: reusing a base blob under a forbidden name is unsafe.
     for (const p of git(["ls-tree", "-rz", "--name-only", commit]).toString().split("\0").filter(Boolean)) {
       if (forbiddenPath(p)) report(`history path ${p}`, ".dryforge tracked");
