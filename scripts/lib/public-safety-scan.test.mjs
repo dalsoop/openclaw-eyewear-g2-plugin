@@ -61,6 +61,14 @@ test("intermediate added-then-deleted secrets remain in the PR gate", (t) => {
   fs.unlinkSync(path.join(f.root, "temporary.txt")); f.commit("Delete temporary file");
   assert(f.run().findings.some((x) => x.where.startsWith("history") && x.rule === "Soniox key"));
 });
+test("reintroduced inherited blobs are scanned even when removed again", (t) => {
+  const f = fixture(t); f.write("old.txt", token); f.commit("Historical content");
+  fs.unlinkSync(path.join(f.root, "old.txt")); f.commit("Remove historical content");
+  f.git("update-ref", "refs/remotes/origin/main", "HEAD");
+  f.write("reintroduced.txt", token); f.commit("Reintroduce old blob");
+  fs.unlinkSync(path.join(f.root, "reintroduced.txt")); f.commit("Remove reintroduced blob");
+  assert(f.run().findings.some((x) => x.where.startsWith("history") && x.rule === "Soniox key"));
+});
 test("merge-base scope excludes new base commits on a diverged branch", (t) => {
   const f = fixture(t); f.git("switch", "-c", "topic"); f.write("topic.txt", "safe"); f.commit();
   f.git("switch", "main"); f.write("base-only.txt", token); f.commit();
