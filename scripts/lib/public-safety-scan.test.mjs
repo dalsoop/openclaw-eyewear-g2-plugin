@@ -120,6 +120,40 @@ test("baseline labels but never exempts a full audit finding", (t) => {
   const out = spawnSync(process.execPath, [cli, f.root, "--all", "--ocuclaw-dist", f.dist], { encoding: "utf8" });
   assert.equal(out.status, 1); assert.match(out.stdout, /FAIL .*known baseline/); assert(!out.stdout.includes(privateEmail));
 });
+test("all mode scans blobs targeted directly by tags", (t) => {
+  const f = fixture(t); f.write("direct-blob.txt", token);
+  const blob = f.git("hash-object", "-w", "direct-blob.txt");
+  fs.unlinkSync(path.join(f.root, "direct-blob.txt")); f.git("tag", "direct-blob", blob);
+  assert.deepEqual(f.run().findings, []);
+  assert(f.run({ mode: "all" }).findings.some((x) => x.rule === "Soniox key"));
+});
+test("replace refs cannot hide the original commit message", (t) => {
+  const f = fixture(t); const original = f.commit(`Change ${token}`);
+  const replacement = f.git("commit-tree", "HEAD^{tree}", "-p", f.base, "-m", "Safe replacement");
+  f.git("replace", original, replacement);
+  for (const mode of ["pr", "all"]) {
+    assert(f.run({ mode }).findings.some((x) => x.where.startsWith("commit message") && x.rule === "Soniox key"));
+  }
+});
+test("shallow side-parent histories fail closed despite a valid merge base", (t) => {
+  const f = fixture(t); f.git("switch", "-c", "side"); f.commit(`Intermediate ${token}`);
+  f.write("side.txt", "safe"); const boundary = f.commit("Clean side tip");
+  f.git("switch", "main"); f.git("merge", "--no-ff", "side", "-m", "Merge side");
+  assert(f.run().findings.some((x) => x.rule === "Soniox key"));
+  fs.writeFileSync(path.resolve(f.root, f.git("rev-parse", "--git-path", "shallow")), boundary + "\n");
+  assert(f.git("merge-base", "origin/main", "HEAD"));
+  for (const mode of ["pr", "all"]) {
+    assert.throws(() => f.run({ mode }));
+    const out = spawnSync(process.execPath, [cli, f.root, ...(mode === "all" ? ["--all"] : []), "--ocuclaw-dist", f.dist], { encoding: "utf8" });
+    assert.equal(out.status, 2); assert.doesNotMatch(out.stdout, /public-safety-scan: clean/);
+  }
+});
+test("legacy graft files fail closed", (t) => {
+  const f = fixture(t);
+  const graft = path.resolve(f.root, f.git("rev-parse", "--git-path", "info/grafts"));
+  fs.mkdirSync(path.dirname(graft), { recursive: true }); fs.writeFileSync(graft, "");
+  for (const mode of ["pr", "all"]) assert.throws(() => f.run({ mode }));
+});
 test("CLI modes and invalid arguments have explicit exit codes", (t) => {
   const f = fixture(t);
   const run = (...args) => spawnSync(process.execPath, [cli, f.root, ...args], { encoding: "utf8" });
