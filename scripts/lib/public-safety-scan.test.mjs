@@ -154,6 +154,32 @@ test("legacy graft files fail closed", (t) => {
   fs.mkdirSync(path.dirname(graft), { recursive: true }); fs.writeFileSync(graft, "");
   for (const mode of ["pr", "all"]) assert.throws(() => f.run({ mode }));
 });
+test("symlinked invocation scans instead of exiting 0 silently", (t) => {
+  const f = fixture(t);
+  const scriptsDir = path.dirname(path.dirname(cli));
+  fs.mkdirSync(path.join(f.root, "scripts/lib"), { recursive: true });
+  fs.copyFileSync(path.join(scriptsDir, "public-safety-scan.sh"), path.join(f.root, "scripts/public-safety-scan.sh"));
+  fs.copyFileSync(cli, path.join(f.root, "scripts/lib/public-safety-scan.mjs"));
+  f.commit("Add scanner copy");
+  const link = path.join(path.dirname(f.root), "repo-link");
+  fs.symlinkSync(f.root, link);
+  const env = { ...process.env, NODE: process.execPath };
+  const wrapper = (...args) => spawnSync("/bin/sh", [path.join(link, "scripts/public-safety-scan.sh"), ...args, "--ocuclaw-dist", f.dist], { encoding: "utf8", env });
+  const count = (text, re) => (text.match(re) || []).length;
+  const clean = wrapper();
+  assert.equal(clean.status, 0);
+  assert.equal(count(clean.stdout, /public-safety-scan: clean/g), 1);
+  assert.equal(count(clean.stdout, /^scope /gm), 1); // the scan runs exactly once
+  const badRef = wrapper("--base", "refs/does-not-exist");
+  assert.equal(badRef.status, 2); assert.doesNotMatch(badRef.stdout, /public-safety-scan: clean/);
+  assert.equal(count(badRef.stderr, /cannot scan/g), 1);
+  f.write("leak.txt", token);
+  const leak = wrapper();
+  assert.equal(leak.status, 1); assert.equal(count(leak.stdout, /^scope /gm), 1);
+  const direct = spawnSync(process.execPath, [path.join(link, "scripts/lib/public-safety-scan.mjs"), f.root, "--base", "refs/does-not-exist", "--ocuclaw-dist", f.dist], { encoding: "utf8" });
+  assert.equal(direct.status, 2); assert.doesNotMatch(direct.stdout, /public-safety-scan: clean/);
+  assert.equal(count(direct.stderr, /cannot scan/g), 1);
+});
 test("CLI modes and invalid arguments have explicit exit codes", (t) => {
   const f = fixture(t);
   const run = (...args) => spawnSync(process.execPath, [cli, f.root, ...args], { encoding: "utf8" });

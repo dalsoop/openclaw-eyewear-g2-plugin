@@ -191,4 +191,14 @@ export function main(args) {
   }
 }
 
-if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) process.exitCode = main(process.argv.slice(2));
+// Direct `node scripts/lib/public-safety-scan.mjs` runs: compare real paths so a
+// symlinked path still runs the scan. The shell wrapper calls main() itself.
+function isEntryPoint() {
+  if (!process.argv[1]) return false;
+  try {
+    return fs.realpathSync(process.argv[1]) === fs.realpathSync(fileURLToPath(import.meta.url));
+  } catch {
+    return false;
+  }
+}
+if (isEntryPoint()) process.exitCode = main(process.argv.slice(2));
