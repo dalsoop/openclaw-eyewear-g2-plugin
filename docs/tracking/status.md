@@ -20,8 +20,8 @@
 | 로컬 기억 검색(llama.cpp 임베딩) | 검증됨 | `openclaw memory status --deep --agent main`에서 Embeddings·Vector store ready |
 | Aside MCP, 내장 브라우저 끔 | 검증됨 | `openclaw mcp probe`에 aside 도구 3개(승인 approve). 리체에게 example.com 제목을 읽게 하자 "Example Domain"으로 답했고, 대화 기록에 `aside__repl` 도구 호출이 남았다 |
 | Gateway 시작 검사·휴대폰 알림 | 검증됨 | 패치를 뺀 상태로 재시작 → 감시 로그 `ALERT SENT`, 다시 넣고 재시작 → `check ok`, 알림 없음. 휴대폰 수신 자체는 사용자 확인 사항 |
-| 공개 안전 검사 | PR 범위 검사와 전수 감사 분리, 임시 저장소 시험 19개 통과 | 기본 PR 모드는 merge base 이후 새 커밋의 내용·메타데이터와 인덱스·작업 트리를 검사한다. `--all`은 모든 ref를 검사하며 PR #1 병합 커밋의 메타데이터 2건을 계속 FAIL로 보고한다. `docs/public-safety-baseline.json`은 기록용이며 면제하지 않는다 |
-| 단위 시험 전체 | 122개 통과 | `node --test ocuclaw-patch/test/ even-ai-settings/test/ scripts/lib/ scripts/patch-watch/` |
+| 공개 안전 검사 | PR 범위 검사와 전수 감사 분리, 임시 저장소 시험 20개 통과 | 기본 PR 모드는 merge base 이후 새 커밋의 내용·메타데이터와 인덱스·작업 트리를 검사한다. `--all`은 모든 ref를 검사하며 PR #1 병합 커밋의 메타데이터 2건을 계속 FAIL로 보고한다. `docs/public-safety-baseline.json`은 기록용이며 면제하지 않는다 |
+| 단위 시험 전체 | 123개 통과 | `node --test ocuclaw-patch/test/ even-ai-settings/test/ scripts/lib/ scripts/patch-watch/` |
 
 ## 남은 일 (우선순위 순)
 
