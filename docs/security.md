@@ -61,4 +61,4 @@
 - OcuClaw 원본 코드(라이선스 표시 없음). 기준 문자열(한 줄 이하의 짧은 문자열)만 허용된다.
 - 로컬 작업 메모 폴더(`.gitignore` 대상).
 
-`scripts/public-safety-scan.sh`가 이력의 모든 blob, 커밋 메시지, 작업 트리를 검사한다. 걸리면 push하지 않는다. 이미 커밋된 이력에서 걸리면 이력을 다시 쓰기 전까지 공개하지 않는다.
+PR을 올리기 전 `scripts/public-safety-scan.sh --base origin/main --head HEAD`가 merge base 이후 새 커밋의 blob·메시지·작성자/커미터 메타데이터·금지 경로와 인덱스·작업 트리를 검사한다. 실패하면 push하지 않는다. main에 이미 공개된 커밋은 PR의 새 노출이 아니므로 PR 게이트에서는 제외하되, `--all` 전수 감사에서는 계속 검사한다. `docs/public-safety-baseline.json`은 기존 발견의 SHA·이유를 기록할 뿐이며 전수 감사의 `FAIL`과 종료 코드 1을 숨기지 않는다. 이미 공개된 개인 이메일의 값은 다시 문서에 쓰지 않고 `findings.md`에 노출 사실만 적는다. main 이력을 force-push하지 않는다(`standards.md`의 2026-10-30 정책).

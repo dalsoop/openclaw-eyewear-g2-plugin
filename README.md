@@ -76,7 +76,8 @@ node scripts/check-live-tick-allowlist.mjs   # plugins.allow 일치 + 실시간 
 scripts/patch-watch.sh status           # LaunchAgent 상태와 최근 검사 결과
 openclaw memory status --deep --agent main   # Embeddings / Vector store ready
 openclaw mcp probe                      # aside 도구 목록
-scripts/public-safety-scan.sh           # 공개 전 안전 검사 (git 기록 전체)
+scripts/public-safety-scan.sh           # PR 범위 + 인덱스·작업 트리 안전 검사 (먼저 git fetch origin)
+scripts/public-safety-scan.sh --all     # 모든 ref 전수 감사 (알려진 발견도 FAIL)
 ```
 
 ## Hey Even 동작

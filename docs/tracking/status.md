@@ -20,12 +20,12 @@
 | 로컬 기억 검색(llama.cpp 임베딩) | 검증됨 | `openclaw memory status --deep --agent main`에서 Embeddings·Vector store ready |
 | Aside MCP, 내장 브라우저 끔 | 검증됨 | `openclaw mcp probe`에 aside 도구 3개(승인 approve). 리체에게 example.com 제목을 읽게 하자 "Example Domain"으로 답했고, 대화 기록에 `aside__repl` 도구 호출이 남았다 |
 | Gateway 시작 검사·휴대폰 알림 | 검증됨 | 패치를 뺀 상태로 재시작 → 감시 로그 `ALERT SENT`, 다시 넣고 재시작 → `check ok`, 알림 없음. 휴대폰 수신 자체는 사용자 확인 사항 |
-| 공개 안전 검사 | 구현됨, 작업 트리 기준 통과 | 이메일·64자리 16진수(노드 ID 모양)·커밋 작성자/커미터 이메일 검사 포함. 이전 커밋 이력에 OcuClaw 원본과 겹친다고 판정된 blob이 남아 있고, 모든 커밋의 작성자·커미터 이메일이 GitHub noreply 주소가 아니다(공개 전 이력 정리 필요) |
-| 단위 시험 전체 | 103개 통과 | `node --test ocuclaw-patch/test/ even-ai-settings/test/ scripts/lib/ scripts/patch-watch/` |
+| 공개 안전 검사 | PR 범위 검사와 전수 감사 분리, 임시 저장소 시험 14개 통과 | 기본 PR 모드는 merge base 이후 새 커밋의 내용·메타데이터와 인덱스·작업 트리를 검사한다. `--all`은 모든 ref를 검사하며 PR #1 병합 커밋의 메타데이터 2건을 계속 FAIL로 보고한다. `docs/public-safety-baseline.json`은 기록용이며 면제하지 않는다 |
+| 단위 시험 전체 | 117개 통과 | `node --test ocuclaw-patch/test/ even-ai-settings/test/ scripts/lib/ scripts/patch-watch/` |
 
 ## 남은 일 (우선순위 순)
 
-1. **이력 정리 후 공개**: 이전 커밋의 `ocuclaw-patch/payload/final-reply.js`, `ocuclaw-patch/verify-live.mjs` 판본과 커밋 작성자·커미터 이메일(GitHub noreply 주소가 아님)이 공개 안전 검사에 걸린다. 이력을 합치고(squash) 작성자를 noreply 주소로 바꿔 검사가 clean이 된 뒤 PR로 공개한다.
+1. **기존 공개 메타데이터 감사**: PR #1 병합 커밋의 개인 이메일 노출 사실은 `findings.md`, SHA·두 발견의 사유는 `docs/public-safety-baseline.json`에 기록했다. main 이력은 다시 쓰지 않는다. PR 게이트와 별개로 `--all`은 기존 발견을 계속 FAIL로 보고하므로 결과를 구분해 기록한다.
 2. **사람 단계**: 휴대폰 OS·Even 앱 언어 확인, `openclaw ocuclaw pair` 페어링 기록, `openclaw ocuclaw first-use` 첫 사용 확인, `openclaw ocuclaw journey` 확인. 에이전트가 대신할 수 없다.
 3. **리체 전용 opencodex 키 발급과 입력**: 아직 발급하지 않았다. 지금 설정에는 자리 채움 값이 들어 있고 tick 검증도 그 값으로 했다. 발급 후 `scripts/set-opencodex-key.sh` → `openclaw gateway restart` → `node scripts/check-live-tick-allowlist.mjs`.
 4. **OcuClaw 개발자에게 버그 보고**: delta 전용 assistant 프레임 미처리, tick 모델을 문자열로 넘기는 키 조회, 미지원 메서드 호출. 정식 수정이 나오면 해당 패치 지점을 지운다.
@@ -35,4 +35,4 @@
 ## 막힌 것
 
 - 2·3번은 사람만 할 수 있다.
-- 1번은 이력을 다시 쓰는 결정이 필요하다.
+- 1번의 기존 공개 이력 노출은 남아 있다. 전수 감사에서 계속 보고하며 새 PR 게이트의 성공으로 숨기지 않는다.

@@ -1,0 +1,16 @@
+{
+  "recordedAt": "2026-10-30",
+  "purpose": "Inventory only. Full audits still print FAIL and exit 1 for these findings; PR mode excludes inherited commits by merge base, not by this file.",
+  "findings": [
+    {
+      "commit": "6d6b32041a3f2f5322fdd4c0890576e32db2bdd9",
+      "rule": "author email is not a GitHub noreply address",
+      "reason": "PR #1 merge author used a personal email. The value is already in public history and is not reproduced here."
+    },
+    {
+      "commit": "6d6b32041a3f2f5322fdd4c0890576e32db2bdd9",
+      "rule": "committer email is not a GitHub noreply address",
+      "reason": "PR #1 merge committer is the GitHub service account, not a per-user GitHub noreply identity."
+    }
+  ]
+}
