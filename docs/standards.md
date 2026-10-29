@@ -51,7 +51,7 @@
 
 ## 스크립트 모양
 
-- 모든 적용·설치 명령은 다시 돌려도 결과가 같아야 한다. 바꿀 것이 없을 때 `already applied`를 찍고 아무것도 하지 않는 것은 `ocuclaw-patch.sh apply`·`all`과 `even-ai-settings.sh apply`(`patch-watch.sh install`은 `already installed`)이고, 나머지 적용 스크립트는 같은 값을 다시 쓴다. `apply-memory-aside.sh`는 매번 Gateway를 재시작하고 색인을 다시 만든다(명령별 동작은 `docs/contracts.md`의 공통 약속).
+- 모든 적용·설치 명령은 다시 돌려도 결과가 같아야 한다. 바꿀 것이 없을 때 `already applied`를 찍고 아무것도 하지 않는 것은 `ocuclaw-patch.sh apply`·`all`과 `even-ai-settings.sh apply`(`patch-watch.sh install`은 `already installed`)이고, 나머지 적용 스크립트는 같은 값을 다시 쓴다. `apply-memory.sh`는 매번 Gateway를 재시작하고 색인을 다시 만든다(명령별 동작은 `docs/contracts.md`의 공통 약속).
 - 셸 진입점은 `scripts/*.sh`이고 POSIX `sh` + `set -eu`다. 로직이 있는 것은 Node ES 모듈(`.mjs`)로 쓰고, 입출력 없는 판단 로직은 별도 `lib` 파일로 떼어 시험한다.
 - Node 경로는 `NODE` 환경 변수, OpenClaw 경로는 `OPENCLAW` 환경 변수로 바꿀 수 있어야 한다. 셸·Node 스크립트 모두 같은 이름을 쓰고, `openclaw`를 PATH에서 바로 부르지 않는다. 기본값은 `/opt/homebrew/opt/node/bin/node`, `~/.local/bin/openclaw`.
 - 종료 코드는 의미가 있다. 검사 명령은 빠짐·불일치에 0이 아닌 고정 코드를 쓰고, 다른 스크립트(감시자)가 그 코드를 해석한다. 기존 코드의 뜻을 바꾸지 않는다.

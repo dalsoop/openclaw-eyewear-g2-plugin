@@ -4,7 +4,7 @@
 
 | 자산 | 위치 | 왜 민감한가 |
 |---|---|---|
-| Even AI 토큰(`evenAiToken`) | `~/.openclaw/openclaw.json`의 `plugins.entries.ocuclaw.config` | 있으면 tailnet 안 누구나 리체에게 Hey Even 질문(= Aside 쓰기 동작 포함)을 보낼 수 있다 |
+| Even AI 토큰(`evenAiToken`) | `~/.openclaw/openclaw.json`의 `plugins.entries.ocuclaw.config` | 있으면 tailnet 안 누구나 리체에게 Hey Even 질문(= 리체가 이 Mac에서 할 수 있는 동작 포함)을 보낼 수 있다 |
 | relay 자격 증명(`relayToken`) | 같은 위치 | OcuClaw 앱 대화 경로 |
 | Gateway 토큰 | `openclaw.json`의 `gateway.auth` | 휴대폰 OpenClaw 앱의 operator 권한 |
 | opencodex 키(`models.providers.opencodex.apiKey`) | `openclaw.json` | 모델 사용량·비용 귀속 |
@@ -28,11 +28,11 @@
 |---|---|---|
 | 페어링된 휴대폰(OpenClaw 앱) | operator·node 권한: 리체와 대화, 알림 수신(`system.notify`) | tailnet 밖에서 접속 |
 | Even 앱(Hey Even) | 안경 전용 세션 하나에 질문 | 다른 세션 열람, 성격 질문 받기 |
-| 리체 | 이 Mac에서 사용자 권한 전체(파일, 명령), Aside를 통해 로그인된 웹 계정에서 **확인 없이** 쓰기 동작 | 사용자가 시키지 않은 외부 공개 행동, 부탁받지 않은 사적 데이터 공유 |
+| 리체 | 이 Mac에서 사용자 권한 전체(파일, 명령) | 브라우저 도구로 웹 계정 다루기(붙인 도구가 없다), 사용자가 시키지 않은 외부 공개 행동, 부탁받지 않은 사적 데이터 공유 |
 | 저장소 스크립트 | `~/.openclaw/` 설정·플러그인 변경, Gateway 재시작, 휴대폰 알림 | 비밀값 출력, opencodex·Tailscale 설정 변경 |
 | 에이전트(개발 작업자) | 스크립트 실행, 비밀값이 "설정되어 있는지" 확인 | 비밀값 값 보기·입력, 페어링·첫 사용 의식 실행 |
 
-**Aside 자동 승인은 사용자가 위험을 듣고 고른 정책이다.** Hey Even 한 마디, 잘못 알아들은 음성, 웹 페이지 속 지시문(프롬프트 주입)으로도 글 전송·설정 변경·결제가 일어날 수 있다. `openclaw mcp configure aside --approval approve`로 켜져 있다. 더 안전하게 바꾸는 것은 사용자 결정 없이 하지 않는다. 마찬가지로 승인 단계를 몰래 추가하거나 자동 승인을 다른 MCP 서버로 넓히지 않는다.
+**리체에게는 브라우저 도구가 없다.** 내장 브라우저는 꺼져 있고(`browser.enabled = false`, 허용 목록에서 제외), 로그인된 웹 계정으로 확인 없이 쓰기 동작을 하던 Aside MCP(`--approval approve`, 결정 0005)는 2026-10-30 사용자 결정으로 뺐다(결정 0008). 0005의 자동 승인은 Aside 한 도구에 대해 사용자가 위험을 듣고 고른 것이므로 다른 도구로 옮기지 않는다. 리체에게 웹 도구(브라우저, MCP 서버)를 새로 붙이거나 내장 브라우저를 다시 켜려면, 붙일 도구와 그 승인 정책(확인 없이 실행할지, 동작마다 확인받을지)을 사용자가 먼저 정하고 새 결정으로 남긴다. 그 전에는 MCP 서버를 추가하지 않는다.
 
 ## 감사
 

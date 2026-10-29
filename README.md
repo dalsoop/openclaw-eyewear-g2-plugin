@@ -8,7 +8,7 @@ OpenClaw 비서 "리체"와 G2 안경용 OcuClaw 플러그인을 내 장비에 �
 - Hey Even 답 잘림 수정: 안경에 답의 첫 조각만 뜨던 문제를 고친다
 - 안경 실시간 화면: `glassesUiLive` tick을 opencodex로 켜고 `plugins.allow`를 정리한다
 - 로컬 기억 검색: OpenClaw가 관리하는 llama.cpp 임베딩(임베딩 모델만)으로 기억을 검색한다
-- Aside 브라우저: 내장 브라우저 대신 Aside를 MCP 서버로 붙인다
+- 브라우저 도구 없음: 내장 브라우저는 꺼 두고 다른 브라우저 도구도 붙이지 않는다(예전에 붙였던 Aside MCP는 지운다)
 - 패치 감시: 게이트웨이가 다시 뜰 때 패치 지점이 사라졌으면 휴대폰으로 알린다
 
 ## 요구 사항
@@ -18,7 +18,6 @@ OpenClaw 비서 "리체"와 G2 안경용 OcuClaw 플러그인을 내 장비에 �
 - OcuClaw 2.1.x (`~/.openclaw/extensions/ocuclaw`)
 - opencodex 허브 (`127.0.0.1:10100`)
 - Tailscale: 휴대폰이 tailnet 안에서만 이 Mac에 접속한다. OcuClaw 앱은 `:8444`(relay), Even 앱의 Hey Even은 `:8443`, 휴대폰 OpenClaw 앱은 `:8460`(Gateway)으로 들어온다. 모두 `tailscale serve`로 열려 있고 funnel은 쓰지 않는다.
-- Aside (`~/.local/bin/aside`)
 
 ## 설치 순서
 
@@ -30,11 +29,11 @@ scripts/ocuclaw-patch.sh apply                      # OcuClaw에 보완 코드 �
 scripts/apply-persona-locale.sh                     # 리체 페르소나 + 한국어/시간대 (이후 실행은 바뀐 성격 파일을 건너뜀, --force로 덮어씀)
 scripts/even-ai-settings.sh apply                   # Hey Even 전용 대화 + 안경용 한국어 프롬프트
 node scripts/apply-live-tick-allowlist.mjs --restart # 안경 실시간 화면 + plugins.allow (--dry-run으로 미리 보기)
-scripts/apply-memory-aside.sh                       # 로컬 임베딩 + Aside MCP, 내장 브라우저 끔
+scripts/apply-memory.sh                             # 로컬 임베딩, 내장 브라우저 끔, 남은 Aside MCP 제거
 scripts/patch-watch.sh install                      # 패치 감시 LaunchAgent 등록
 ```
 
-- `apply-memory-aside.sh`는 중간에 질문을 한다. 대화 모델 다운로드(수 GB)에는 **No**, 임베딩 모델만 받기(약 0.3 GB)에는 **Yes**를 고른다.
+- `apply-memory.sh`는 중간에 질문을 한다. 대화 모델 다운로드(수 GB)에는 **No**, 임베딩 모델만 받기(약 0.3 GB)에는 **Yes**를 고른다.
 - opencodex 키는 `scripts/set-opencodex-key.sh`를 직접 터미널에서 실행해 넣는다. 입력이 화면에 보이지 않고 셸 기록에도 남지 않는다.
 - 모든 스크립트는 다시 돌려도 안전하다(이미 된 부분은 건너뛴다).
 
@@ -75,7 +74,7 @@ scripts/even-ai-settings.sh verify      # 연속 요청 두 개가 전용 대화
 node scripts/check-live-tick-allowlist.mjs   # plugins.allow 일치 + 실시간 tick 실제 호출 (--skip-tick)
 scripts/patch-watch.sh status           # LaunchAgent 상태와 최근 검사 결과
 openclaw memory status --deep --agent main   # Embeddings / Vector store ready
-openclaw mcp probe                      # aside 도구 목록
+openclaw mcp list                       # aside가 없어야 한다
 scripts/public-safety-scan.sh           # PR 범위 + 인덱스·작업 트리 안전 검사 (먼저 git fetch origin)
 scripts/public-safety-scan.sh --all     # 모든 ref 전수 감사 (알려진 발견도 FAIL)
 ```
@@ -107,10 +106,10 @@ OpenClaw 2026.10.5 게이트웨이는 assistant 스트림의 첫 프레임에만
 ## 알려진 사항
 
 - OcuClaw 출처(provenance) 경고는 남는다. `plugins.allow`에 ocuclaw가 들어 있지만, 패치한 플러그인은 원본과 달라 검증할 수 없다.
-- `plugins.allow`에서 `browser`를 뺐고 `browser.enabled=false`다. 그래서 `browser.request`를 부르는 클라이언트가 있으면 로그에 "unknown method"가 찍힌다. 브라우저 일은 Aside가 한다.
+- `plugins.allow`에서 `browser`를 뺐고 `browser.enabled=false`다. 그래서 `browser.request`를 부르는 클라이언트가 있으면 로그에 "unknown method"가 찍힌다.
 - Soniox 음성 인식: 월 한도 $5, $3에서 알림. 키는 `plugins.entries.ocuclaw.config.sonioxApiKey`에 저장한다(값은 이 저장소에 없다).
 - opencodex 키는 `scripts/set-opencodex-key.sh`로만 넣는다(`models.providers.opencodex.apiKey`).
-- **Aside 동작은 확인 없이 실행된다**(`--approval approve`, 사용자 선택). Hey Even으로 말한 요청도 마찬가지다. 로그인된 브라우저로 클릭·입력·전송까지 바로 하므로, 잘못 알아들은 말이나 웹 페이지 속 지시문 때문에 원치 않는 동작(글 전송, 설정 변경, 결제 등)이 일어날 수 있다. 위험을 감수하는 설정이다.
+- **리체에게는 브라우저 도구가 없다.** 예전에 확인 없이 실행되도록(`--approval approve`) 붙였던 Aside MCP는 2026-10-30 사용자 결정으로 뺐다. 로그인된 사이트에서 무언가를 하라고 시키면(Hey Even 포함) 리체는 할 수 없다. 웹 도구를 다시 붙이려면 그 도구의 승인 정책을 사용자가 먼저 정해야 한다(`docs/tracking/decisions/0008-remove-aside.md`).
 
 ## "잘 이해하지 못했습니다"가 뜰 때
 
