@@ -59,7 +59,7 @@
 
 ## 로컬 임베딩 설치는 대화형이다
 
-`openclaw models auth login --provider llama-cpp --method local`은 두 번 묻는다. 첫 질문은 수 GB 대화 모델 다운로드다. **No**. 여기서 Yes를 고르면 큰 모델을 받고 기본 모델이 바뀔 수 있다. 두 번째 질문은 임베딩 모델만(약 0.3 GB) 받기다. **Yes**. 2026.10.5에는 `openclaw onboard --llama-cpp-embedding-only` 같은 비대화형 옵션이 없다. 그래서 `scripts/apply-memory-aside.sh`는 사람이 터미널 앞에 있을 때만 돌린다. 이미 `Embeddings: ready`면 이 단계를 건너뛴다. 확인은 `openclaw memory status --deep --agent main`에서 Embeddings·Vector store가 ready인지 본다.
+`openclaw models auth login --provider llama-cpp --method local`은 두 번 묻는다. 첫 질문은 수 GB 대화 모델 다운로드다. **No**. 여기서 Yes를 고르면 큰 모델을 받고 기본 모델이 바뀔 수 있다. 두 번째 질문은 임베딩 모델만(약 0.3 GB) 받기다. **Yes**. 2026.10.5에는 `openclaw onboard --llama-cpp-embedding-only` 같은 비대화형 옵션이 없다. 그래서 `scripts/apply-memory.sh`는 사람이 터미널 앞에 있을 때만 돌린다. 이미 `Embeddings: ready`면 이 단계를 건너뛴다. 확인은 `openclaw memory status --deep --agent main`에서 Embeddings·Vector store가 ready인지 본다.
 
 ## 패치 감시자
 
