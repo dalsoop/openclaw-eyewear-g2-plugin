@@ -1,6 +1,6 @@
 {
   "recordedAt": "2026-10-30",
-  "purpose": "Inventory only. Full audits still print FAIL and exit 1 for these findings; PR mode excludes inherited commits by merge base, not by this file.",
+  "purpose": "Inventory only. Full audits still print FAIL and exit 1 for these findings; PR mode excludes commits already on the base by scanning only base..head, not by this file.",
   "findings": [
     {
       "commit": "6d6b32041a3f2f5322fdd4c0890576e32db2bdd9",

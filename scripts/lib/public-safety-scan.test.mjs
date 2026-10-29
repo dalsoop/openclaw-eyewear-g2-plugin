@@ -75,6 +75,27 @@ test("merge-base scope excludes new base commits on a diverged branch", (t) => {
   f.git("update-ref", "refs/remotes/origin/main", "HEAD"); f.git("switch", "topic");
   assert.deepEqual(f.run().findings, []);
 });
+test("criss-cross merges keep commits already on base out of the PR gate", (t) => {
+  const f = fixture(t);
+  const commitAs = (name, message) => {
+    f.write(name, `${message}\n`); f.git("add", ".");
+    f.git("commit", "--author", `Fixture <${privateEmail}>`, "-m", message);
+    return f.git("rev-parse", "HEAD");
+  };
+  const a1 = commitAs("a1.txt", "A1");
+  f.git("switch", "-c", "topic", f.base);
+  const c1 = commitAs("c1.txt", "C1");
+  f.git("switch", "main"); f.git("merge", "--no-ff", c1, "-m", "A2");
+  f.git("update-ref", "refs/remotes/origin/main", "HEAD");
+  f.git("switch", "topic"); f.git("merge", "--no-ff", a1, "-m", "C2");
+  f.write("c3.txt", "safe"); f.commit("C3");
+  assert.equal(f.git("merge-base", "--all", "origin/main", "HEAD").split("\n").length, 2);
+  const result = f.run();
+  assert.equal(result.commits, 2); // C2 and C3 only; A1 and C1 are already on base
+  assert.deepEqual(result.findings, []);
+  f.git("commit", "--allow-empty", "--author", `Fixture <${privateEmail}>`, "-m", "C4");
+  assert(f.run().findings.some((x) => x.rule.startsWith("author email")));
+});
 test("unknown refs and unrelated histories fail closed", (t) => {
   const f = fixture(t);
   assert.throws(() => f.run({ base: "missing-ref" }));
