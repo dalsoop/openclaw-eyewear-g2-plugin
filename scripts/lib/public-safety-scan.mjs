@@ -37,9 +37,14 @@ function windows(lines) {
 const forbiddenPath = (p) => p.split("/").includes(".dryforge");
 
 export function scan({ root, dist, mode = "pr", base = "origin/main", head = "HEAD" }) {
-  const git = (args, opts = {}) => execFileSync("git", ["-C", root, ...args], {
+  const git = (args, opts = {}) => execFileSync("git", ["--no-replace-objects", "-C", root, ...args], {
     maxBuffer: 1 << 30, stdio: ["pipe", "pipe", "pipe"], ...opts,
   });
+  // Replacement objects must not hide the actual commits. Truncated or grafted
+  // histories cannot prove the PR range or the all-refs audit complete.
+  if (git(["rev-parse", "--is-shallow-repository"]).toString().trim() !== "false") throw new Error("shallow history");
+  const graftFile = git(["rev-parse", "--git-path", "info/grafts"]).toString().trim();
+  if (process.env.GIT_GRAFT_FILE || fs.existsSync(path.resolve(root, graftFile))) throw new Error("grafted history");
   const resolve = (ref) => git(["rev-parse", "--verify", "--end-of-options", `${ref}^{commit}`]).toString().trim();
   if (mode !== "pr" && mode !== "all") throw new Error("invalid mode");
   // Fail closed on an unknown base/head or an unrelated history; never fall back to all/empty.
@@ -81,6 +86,23 @@ export function scan({ root, dist, mode = "pr", base = "origin/main", head = "HE
   }
 
   const blobPaths = new Map();
+  if (mode === "all") {
+    // A ref/tag can target a blob or tree directly, outside every commit tree.
+    const objects = git(["rev-list", "--objects", "--all"]).toString().trim().split("\n").filter(Boolean);
+    if (objects.length) {
+      const types = git(["cat-file", "--batch-check=%(objectname) %(objecttype)"], {
+        input: objects.map((line) => line.split(" ")[0]).join("\n") + "\n",
+      }).toString().trim().split("\n");
+      const typeOf = new Map(types.map((line) => line.split(" ")));
+      for (const line of objects) {
+        const sp = line.indexOf(" ");
+        const id = sp < 0 ? line : line.slice(0, sp);
+        const p = sp < 0 ? "(unnamed)" : line.slice(sp + 1);
+        if (forbiddenPath(p)) report(`history path ${p}`, ".dryforge tracked");
+        if (typeOf.get(id) === "blob") blobPaths.set(id, p);
+      }
+    }
+  }
   const commits = git(["rev-list", ...revisions]).toString().trim().split("\n").filter(Boolean);
   for (const commit of commits) {
     // Inspect additions/modifications against every parent, not only new object IDs.
