@@ -26,7 +26,7 @@
 
 ## 남은 일 (우선순위 순)
 
-1. **기존 공개 메타데이터 감사**: PR #1 병합 커밋의 개인 이메일 노출 사실은 `findings.md`, SHA·두 발견의 사유는 `docs/public-safety-baseline.json`에 기록했다. main 이력은 다시 쓰지 않는다. PR 게이트와 별개로 `--all`은 기존 발견을 계속 FAIL로 보고하므로 결과를 구분해 기록한다. PR 병합은 병합 계정의 GitHub 이메일 비공개 설정이 켜진 뒤에 rebase로 하고, 직후 병합 범위를 검사한다(`docs/operations.md`, `findings.md`).
+1. **기존 공개 메타데이터 감사**: PR #1 병합 커밋의 개인 이메일 노출 사실은 `findings.md`, SHA·두 발견의 사유는 `docs/public-safety-baseline.json`에 기록했다. main 이력은 다시 쓰지 않는다. PR 게이트와 별개로 `--all`은 기존 발견을 계속 FAIL로 보고하므로 결과를 구분해 기록한다. PR 병합은 병합 계정의 GitHub 이메일 비공개 설정이 켜진 상태에서 rebase로 하고, 직후 병합 범위를 검사한다(`docs/operations.md`). 2026-10-30 계정 소유자의 GitHub 세션에서 이 설정이 켜져 있고 웹 Git 작업이 noreply 주소를 쓰는 것을 확인했으며, 같은 날 PR #3을 rebase로 병합한 뒤 병합 범위 검사가 clean이었다(작성자·커미터 모두 noreply).
 2. **사람 단계**: 휴대폰 OS·Even 앱 언어 확인, `openclaw ocuclaw pair` 페어링 기록, `openclaw ocuclaw first-use` 첫 사용 확인, `openclaw ocuclaw journey` 확인. 에이전트가 대신할 수 없다.
 3. **리체 전용 opencodex 키 발급과 입력**: 아직 발급하지 않았다. 지금 설정에는 자리 채움 값이 들어 있고 tick 검증도 그 값으로 했다. 발급 후 `scripts/set-opencodex-key.sh` → `openclaw gateway restart` → `node scripts/check-live-tick-allowlist.mjs`.
 4. **OcuClaw 개발자에게 버그 보고**: delta 전용 assistant 프레임 미처리, tick 모델을 문자열로 넘기는 키 조회, 미지원 메서드 호출. 정식 수정이 나오면 해당 패치 지점을 지운다.
@@ -37,4 +37,3 @@
 
 - 2·3번은 사람만 할 수 있다.
 - 1번의 기존 공개 이력 노출은 남아 있다. 전수 감사에서 계속 보고하며 새 PR 게이트의 성공으로 숨기지 않는다.
-- PR 병합은 계정 소유자가 GitHub 이메일 비공개 설정을 켜야 할 수 있다(사용자 결정).
