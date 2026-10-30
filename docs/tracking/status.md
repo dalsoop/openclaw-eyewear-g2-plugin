@@ -19,10 +19,10 @@
 | `plugins.allow`(44개, `browser` 제외) | 검증됨 | 켜진 목록 == 허용 목록 |
 | 로컬 기억 검색(llama.cpp 임베딩) | 검증됨 | `openclaw memory status --deep --agent main`에서 Embeddings·Vector store ready |
 | 내장 브라우저 끔, Aside MCP 제거(결정 0008) | 구현됨, 가짜 CLI로 검증 | `scripts/apply-memory.sh`는 Aside를 등록하지 않고, 대화형 단계 전에 `openclaw mcp list --json`에 `aside`가 있을 때만 `openclaw mcp unset aside`로 지운다. 호출을 기록하는 가짜 `openclaw`로 "있으면 한 번 지움, 다시 돌리면 건너뜀, 목록 조회 실패·해석 불가면 아무것도 지우지 않고 1"을 확인했다. 실제 설치본에서는 돌리지 않았다. 설치본의 `mcp.servers.aside` 제거는 저장소 밖 작업(2026-10-30)이 맡았고 여기서 확인하지 않았다. 리체의 웹 도구는 아래 ego lite 행이다 |
-| 웹 도구 ego lite(결정 0009) | 검증됨 | 2026-10-30 실제 설치본에서 `scripts/backup.sh` 뒤 `node scripts/apply-ego-browser.mjs` → `ALL CHECKS PASSED`(ego-browser 0.6.1.13, 스킬 출처 `agents-skills-personal`, `exec` security full·ask off, 내장 브라우저 꺼짐). 설치본 workspace `AGENTS.md`는 브라우저 절만 저장소와 달랐으므로 `persona/AGENTS.md`로 바꿨다. 별도 세션에서 리체에게 "ego lite로 https://example.com 제목만 알려줘"를 보내자 "Example Domain"으로 답했고, 대화 기록에 `ego-browser skill`, `ego-browser nodejs` `exec` 호출이 남았다. 실패 경로(스킬 없음, 승인 질문, 내장 브라우저 켜짐, 쓰기 실패, ego-browser 없음, `--check`는 쓰지 않음)는 가짜 `openclaw`로 확인했다 |
+| 웹 도구 ego lite(결정 0009) | 검증됨 | 2026-10-30 실제 설치본에서 `scripts/backup.sh` 뒤 `node scripts/apply-ego-browser.mjs --restart` → `ALL CHECKS PASSED`(ego-browser 0.6.1.13, 스킬 출처 `agents-skills-personal`, `exec` security full·ask off, 내장 브라우저 꺼짐), 재시작 뒤 `Connectivity check: ok`, OcuClaw 패치 `check` 통과, 감시자 `check ok`(알림 없음). 설치본 workspace `AGENTS.md`는 브라우저 절만 저장소와 달랐으므로 `persona/AGENTS.md`로 바꿨다. 별도 세션에서 리체에게 "ego lite로 https://example.com 제목만 알려줘"를 보내자 재시작 전·후 모두 "Example Domain"으로 답했고, 대화 기록에 `ego-browser skill`, `ego-browser nodejs` `exec` 호출이 남았다. 이미 열린 안경 전용 세션에서 Hey Even으로 ego lite를 쓰는 경로는 돌려 보지 않았다(재시작으로 스킬 목록은 갱신됨). 실패 경로(스킬 없음, 승인 질문(전역·리체 전용 범위), 내장 브라우저 켜짐, 쓰기 실패, ego-browser 없음, 0이 아닌 종료, `--check`는 쓰지 않음, 실패하면 재시작 안 함)는 가짜 `openclaw`로 확인했다 |
 | Gateway 시작 검사·휴대폰 알림 | 검증됨 | 패치를 뺀 상태로 재시작 → 감시 로그 `ALERT SENT`, 다시 넣고 재시작 → `check ok`, 알림 없음. 휴대폰 수신 자체는 사용자 확인 사항 |
 | 공개 안전 검사 | PR 범위 검사와 전수 감사 분리, 임시 저장소 시험 21개 통과 | 기본 PR 모드는 PR이 더하는 커밋(`base..head`)의 내용·메타데이터와 인덱스·작업 트리를 검사한다. `--all`은 모든 ref를 검사하며 PR #1 병합 커밋의 메타데이터 2건을 계속 FAIL로 보고한다. `docs/public-safety-baseline.json`은 기록용이며 면제하지 않는다 |
-| 단위 시험 전체 | 133개 통과 | `node --test ocuclaw-patch/test/ even-ai-settings/test/ scripts/lib/ scripts/patch-watch/` |
+| 단위 시험 전체 | 134개 통과 | `node --test ocuclaw-patch/test/ even-ai-settings/test/ scripts/lib/ scripts/patch-watch/` |
 
 ## 남은 일 (우선순위 순)
 

@@ -31,7 +31,7 @@ scripts/even-ai-settings.sh apply                   # Hey Even 전용 대화 + �
 node scripts/apply-live-tick-allowlist.mjs --restart # 안경 실시간 화면 + plugins.allow (--dry-run으로 미리 보기)
 scripts/apply-memory.sh                             # 로컬 임베딩, 내장 브라우저 끔, 남은 Aside MCP 제거
 scripts/patch-watch.sh install                      # 패치 감시 LaunchAgent 등록
-node scripts/apply-ego-browser.mjs                  # 웹 도구 ego lite 연결 (스킬 키 하나, 재시작 없음)
+node scripts/apply-ego-browser.mjs --restart        # 웹 도구 ego lite 연결 (스킬 키 하나 + 게이트웨이 재시작)
 ```
 
 - `apply-memory.sh`는 중간에 질문을 한다. 대화 모델 다운로드(수 GB)에는 **No**, 임베딩 모델만 받기(약 0.3 GB)에는 **Yes**를 고른다.
@@ -111,7 +111,7 @@ OpenClaw 2026.10.5 게이트웨이는 assistant 스트림의 첫 프레임에만
 - `plugins.allow`에서 `browser`를 뺐고 `browser.enabled=false`다. 그래서 `browser.request`를 부르는 클라이언트가 있으면 로그에 "unknown method"가 찍힌다.
 - Soniox 음성 인식: 월 한도 $5, $3에서 알림. 키는 `plugins.entries.ocuclaw.config.sonioxApiKey`에 저장한다(값은 이 저장소에 없다).
 - opencodex 키는 `scripts/set-opencodex-key.sh`로만 넣는다(`models.providers.opencodex.apiKey`).
-- **리체의 웹 도구는 ego lite다.** 2026-10-30 사용자 결정으로 에이전트 브라우저 ego lite의 로그인된 기본 프로필을 붙였다. 사용자가 시킨 웹 작업(Hey Even 포함)은 쓰기 동작도 확인 없이 실행한다(예전 Aside MCP와 같은 승인 정책). 처음 보는 사이트도 그 프로필로 연다(사용자가 듣고 받아들인 위험). 떼어 내려면 `skills.entries.ego-browser.enabled`를 `false`로 쓴다(`docs/tracking/decisions/0009-ego-lite-web-tool.md`).
+- **리체의 웹 도구는 ego lite다.** 2026-10-30 사용자 결정으로 에이전트 브라우저 ego lite의 로그인된 기본 프로필을 붙였다. 사용자가 시킨 웹 작업(Hey Even 포함)은 쓰기 동작도 확인 없이 실행한다(예전 Aside MCP와 같은 승인 정책). 처음 보는 사이트도 그 프로필로 연다(사용자가 듣고 받아들인 위험). 떼어 내려면 `skills.entries.ego-browser.enabled`를 `false`로 쓰고 게이트웨이를 재시작한다(`docs/tracking/decisions/0009-ego-lite-web-tool.md`).
 
 ## "잘 이해하지 못했습니다"가 뜰 때
 

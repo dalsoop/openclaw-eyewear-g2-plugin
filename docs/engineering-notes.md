@@ -73,8 +73,9 @@
 
 - 리체는 ego lite 스킬을 OpenClaw의 개인 에이전트 스킬 폴더 `~/.agents/skills/ego-browser`에서 찾는다(`openclaw skills info ego-browser --agent main --json`의 `source`가 `agents-skills-personal`). 이 링크는 `~/.local/share/ego/ego-skills`와 `active_version_dir`(지금 설치된 판)를 거쳐 ego lite 앱 안의 스킬 폴더로 간다. 이 저장소가 만든 링크가 아니다(2026-10-30 아침에 생겼다). ego lite를 올리면 그 판의 스킬을 보게 되므로, 올린 뒤에는 `--check`로 다시 확인한다. 스킬 본문은 `ego-browser skill`을 먼저 돌리라는 안내뿐이고, 판에 맞는 사용법은 그 명령이 찍는다.
 - 스킬은 키가 없어도 기본으로 보인다. `skills.entries.ego-browser.enabled`를 지우면(unset) 떨어지지 않고 `false`로 써야 숨는다. 결정 0009 이전에 만든 백업으로 복원해도 같은 이유로 스킬은 남는다.
-- 개인 에이전트 스킬 폴더는 기본 상태 폴더(`~/.openclaw`)일 때만 읽힌다. `OPENCLAW_STATE_DIR`을 바꾸거나 `agents.entries.main.skills`(에이전트별 스킬 허용 목록)를 두면 스킬이 사라질 수 있다. 허용 목록을 두면 `ego-browser`를 넣는다.
-- 스킬 설정(`skills.*`)은 Gateway 재시작 없이 바로 적용된다(OpenClaw 2026.10.5 문서의 hot reload 표).
+- 개인 에이전트 스킬 폴더는 기본 상태 폴더(`~/.openclaw`)일 때만 읽힌다. `OPENCLAW_STATE_DIR`을 바꾸거나 `agents.entries.main.skills`나 `agents.defaults.skills`(스킬 허용 목록)를 두면 스킬이 사라질 수 있다. 허용 목록을 두면 `ego-browser`를 넣는다.
+- 스킬 설정(`skills.*`)은 Gateway 재시작 없이 읽히지만(OpenClaw 2026.10.5 문서의 hot reload 표), 스킬 목록은 세션이 시작될 때 고정된다(`docs/tools/skills.md`의 "Snapshots and refresh"). 설정 변경은 열린 세션의 갱신 조건이 아니므로, 안경 전용 세션처럼 오래 열린 세션은 Gateway를 재시작해야 바뀐다. 그래서 `apply-ego-browser.mjs`는 `--restart`로 돌린다.
+- 검사의 `ego-browser --version`은 `EGO_BROWSER` 절대 경로로 돈다. 리체는 Gateway `exec`의 PATH에서 이름으로 찾으므로 이 검사가 통과해도 리체의 PATH에 있다는 증거는 아니다. 실제 실행은 리체에게 조회를 시켜 확인한다.
 - 승인은 `exec` 정책을 따른다. 지금은 OpenClaw 기본값(security full, ask off)이라 질문 없이 실행된다. `openclaw exec-policy preset cautious` 같은 변경은 ego lite 호출에도 질문을 붙이고, 안경 경로에서는 답할 화면이 없어 웹 작업이 멈춘다.
 - `ego-browser --version`은 판 정보를 표준 오류로 찍는다.
 - **확인**: `node scripts/apply-ego-browser.mjs --check`. 실제 동작은 리체에게 무해한 조회(예: example.com 제목)를 시키고 대화 기록에 `ego-browser nodejs` 호출이 남는지 본다.

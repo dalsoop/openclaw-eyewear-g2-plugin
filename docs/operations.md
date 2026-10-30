@@ -28,7 +28,7 @@ node scripts/apply-live-tick-allowlist.mjs --dry-run  # 6. tick 설정 + plugins
 node scripts/apply-live-tick-allowlist.mjs --restart  #    적용 후 재시작
 scripts/apply-memory.sh                               # 7. llama.cpp 임베딩(대화형) + 내장 브라우저 끔 + 남은 Aside MCP 제거
 scripts/patch-watch.sh install                        # 8. 패치 감시 LaunchAgent
-node scripts/apply-ego-browser.mjs                    # 9. 웹 도구 ego lite 연결(스킬 키 하나, 재시작 없음)
+node scripts/apply-ego-browser.mjs --restart          # 9. 웹 도구 ego lite 연결(스킬 키 하나 + 재시작)
 ```
 
 - 2단계 뒤 Gateway 로그에서 OcuClaw가 로드되는지 확인한다. 출처 경고만 있으면 정상이고, 로드가 거부되면 1단계 백업으로 되돌리고 멈춘다.
@@ -36,7 +36,7 @@ node scripts/apply-ego-browser.mjs                    # 9. 웹 도구 ego lite �
 - 7단계의 두 질문: 대화 모델(수 GB)은 **No**, 임베딩 모델만(약 0.3 GB)은 **Yes**. 사람 없이 돌리지 않는다.
 - 7단계는 웹 도구를 붙이지 않는다. 예전 판이 등록한 `mcp.servers.aside`가 남아 있으면 지우고, 없으면 건너뛴다(결정 0008). 웹 도구 ego lite는 9단계가 붙인다.
 - 8단계는 2단계 뒤에 한다. 패치가 없는 상태에서 감시자를 먼저 켜면 다음 Gateway 시작 때 바로 알림이 간다.
-- 9단계는 ego lite를 설치하고 온보딩을 마친 뒤에 한다(`ego-browser` 명령과 ego lite의 `ego-browser` 스킬이 있어야 한다). `skills.entries.ego-browser.enabled` 하나만 쓰고 Gateway를 재시작하지 않는다. 성격 파일의 "브라우저(ego lite)" 절은 3단계가 처음 설치 때만 복사하므로, 이미 설치된 곳에서는 백업 뒤 workspace `AGENTS.md`의 브라우저 절만 `persona/AGENTS.md`의 것으로 바꾼다(결정 0009).
+- 9단계는 ego lite를 설치하고 온보딩을 마친 뒤에 한다(`ego-browser` 명령과 ego lite의 `ego-browser` 스킬이 있어야 한다). `skills.entries.ego-browser.enabled` 하나만 쓰고, 검사가 모두 통과하면 Gateway를 재시작한다(스킬 목록은 세션이 시작될 때 고정되므로 안경 전용 세션 같은 열린 세션은 재시작 뒤에야 바뀐다). 검사는 스킬이 보이는지와 승인 질문이 없는지만 본다. 리체가 실제로 ego lite를 쓰는지는 리체에게 무해한 조회(예: "ego lite로 https://example.com 제목만 알려줘")를 시키고, 대화 기록에 `ego-browser nodejs` `exec` 호출이 남는지로 확인한다. 성격 파일의 "브라우저(ego lite)" 절은 3단계가 처음 설치 때만 복사하므로, 이미 설치된 곳에서는 백업 뒤 workspace `AGENTS.md`의 브라우저 절만 `persona/AGENTS.md`의 것으로 바꾼다(결정 0009).
 
 ## 사람만 하는 단계
 
@@ -72,13 +72,13 @@ scripts/patch-watch.sh uninstall                     # 감시자 제거
 - 복원은 백업에 있는 파일만 되돌린다. 백업 뒤 새로 생긴 workspace 파일, 설치한 llama.cpp 플러그인, 내려받은 임베딩 모델, `~/.openclaw/ocuclaw-g2/` 상태 폴더는 지우지 않는다.
 - 플러그인 폴더는 임시 이름으로 복사한 뒤 바꿔 넣으므로 복사 도중 실패해도 기존 폴더가 남는다.
 - 2026-10-30 이전에 만든 백업에는 Aside가 들어 있다: `openclaw.json`의 `mcp.servers.aside`(자동 승인)와 workspace `AGENTS.md`의 옛 "브라우저(Aside)" 절. 그런 백업으로 복원했으면 `scripts/apply-memory.sh`를 다시 돌려 MCP 서버를 지우고, workspace `AGENTS.md`의 그 절을 `persona/AGENTS.md`의 "브라우저(ego lite)" 절로 바꾼다. 다른 절에 설치 뒤 고친 내용이 있으면 남기고 그 절만 바꾼다(`--force`는 성격 파일 4개를 모두 덮어쓰므로 쓰지 않는다, 결정 0008).
-- ego lite 웹 도구를 떼어 내려면 `openclaw config set skills.entries.ego-browser.enabled false --strict-json`을 쓰고 workspace `AGENTS.md`의 브라우저 절을 바꾼다(결정 0009의 되돌리기). 키를 지우거나(unset) 결정 0009 이전에 만든 백업으로 복원하는 것만으로는 떨어지지 않는다. 키가 없으면 스킬이 기본으로 보인다.
+- ego lite 웹 도구를 떼어 내려면 `openclaw config set skills.entries.ego-browser.enabled false --strict-json` → `openclaw gateway restart`(연결 확인까지 기다림) → workspace `AGENTS.md`의 브라우저 절을 바꾼다(결정 0009의 되돌리기). 키를 지우거나(unset) 결정 0009 이전에 만든 백업으로 복원하는 것만으로는 떨어지지 않는다. 키가 없으면 스킬이 기본으로 보인다. `false`는 스킬 안내를 숨길 뿐이고 `exec`로 `ego-browser`를 부르는 것까지 막지는 않는다.
 
 ## 검사 명령
 
 | 명령 | 통과 조건 |
 |---|---|
-| `/opt/homebrew/opt/node/bin/node --test ocuclaw-patch/test/ even-ai-settings/test/ scripts/lib/ scripts/patch-watch/` | 133개 모두 pass |
+| `/opt/homebrew/opt/node/bin/node --test ocuclaw-patch/test/ even-ai-settings/test/ scripts/lib/ scripts/patch-watch/` | 134개 모두 pass |
 | `scripts/ocuclaw-patch.sh check` | `check: all patch points present`(종료 코드 5 `payload differs from repo`는 훅은 살아 있고 설치본 payload가 저장소와 다를 뿐이다. `apply`로 맞춘다) |
 | `scripts/ocuclaw-patch.sh verify-live` | `verify-live: PASS`(실제 Even AI 요청 3건, 1~2분) |
 | `scripts/even-ai-settings.sh check` | `store ok, config ok` |
@@ -87,7 +87,7 @@ scripts/patch-watch.sh uninstall                     # 감시자 제거
 | `scripts/patch-watch.sh status` | `loaded`, 최근 로그에 `check ok` |
 | `openclaw memory status --deep --agent main` | Embeddings·Vector store ready |
 | `openclaw mcp list` | `aside`가 없음(MCP로 붙인 웹 도구가 없다. 웹 도구 ego lite는 스킬이다) |
-| `node scripts/apply-ego-browser.mjs --check` | `ALL CHECKS PASSED`(ego-browser 실행, 스킬이 리체에게 보임, `exec` 승인 질문 없음, 내장 브라우저 꺼짐) |
+| `node scripts/apply-ego-browser.mjs --check` | `ALL CHECKS PASSED`(ego-browser 실행, 스킬이 리체에게 보임, `exec` 승인 질문 없음, 내장 브라우저 꺼짐). 리체가 실제로 쓰는지는 위 9단계 설명의 조회로 본다 |
 | `scripts/public-safety-scan.sh` | `public-safety-scan: clean` |
 
 `verify-live`와 `even-ai-settings.sh verify`는 실제 모델을 부르므로 비용이 들고, 질문이 안경 전용 세션 기록에 `(확인용 <nonce>)` 꼬리표와 함께 남는다.

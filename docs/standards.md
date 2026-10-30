@@ -44,7 +44,7 @@
 
 ## 시험
 
-- 단위 시험: `/opt/homebrew/opt/node/bin/node --test ocuclaw-patch/test/ even-ai-settings/test/ scripts/lib/ scripts/patch-watch/`가 모두 통과해야 한다(지금 133개). 주입 코드, 다듬기 규칙, 허용 목록 계산, 감시 판단 로직을 바꾸면 이 명령을 돌린다.
+- 단위 시험: `/opt/homebrew/opt/node/bin/node --test ocuclaw-patch/test/ even-ai-settings/test/ scripts/lib/ scripts/patch-watch/`가 모두 통과해야 한다(지금 134개). 주입 코드, 다듬기 규칙, 허용 목록 계산, 감시 판단 로직, ego lite 판정을 바꾸면 이 명령을 돌린다.
 - 다듬기 규칙(기호 정리·길이 정책)을 바꾸면 경계 사례 시험(정확히 350, 351, 경계 없음, `다.` 끝, 이모지만, 빈 답, `…` 중복)을 함께 고친다.
 - 패치 지점을 바꾸면 깨끗한 원본 사본 기준 시험(`ocuclaw-patch/test/patcher.test.mjs`: 원본은 전부 빠짐, 적용 후 통과, 두 번 적용해도 변화 없음, 훅 하나 지우면 그 지점만 지목, 기준 문자열 하나 없으면 아무것도 안 씀)이 통과해야 한다.
 - 설치본에 영향을 주는 변경은 단위 시험만으로 통과가 아니다. `scripts/ocuclaw-patch.sh all`(적용 → 재시작 → 검사 → `verify-live`)이 `verify-live: PASS`로 끝나야 한다.
