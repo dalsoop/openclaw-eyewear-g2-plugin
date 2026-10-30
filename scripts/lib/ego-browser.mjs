@@ -48,6 +48,8 @@ export function skillProblems(info) {
 // Per-session /exec overrides are not in this output and are not checked.
 export function execProblems(policy, agentId = AGENT_ID) {
   if (!policy || typeof policy !== "object") return ["no exec policy"];
+  // The CLI's own failure report (handed over even on a non-zero exit) never passes.
+  if (policy.ok === false) return [`exec policy not reported (${policy.error?.message || "unknown error"})`];
   const problems = [];
   const tools = policy.toolAccess?.agentId === agentId ? policy.toolAccess.local?.tools : undefined;
   const exec = Array.isArray(tools) ? tools.find((t) => t && t.id === "exec") : undefined;
