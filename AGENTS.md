@@ -20,7 +20,7 @@ openclaw-g2/
 │       ├── status.md                  ← 기능별 구현·검증 상태와 남은 일
 │       ├── decisions/
 │       │   ├── index.md               ← 결정 기록 목록
-│       │   └── NNNN-*.md              ← 개별 결정(패치 방식, 기록 기반 최종 답, 허용 목록, 알림만, Aside 자동 승인(대체됨), 전용 세션, tick 키, Aside 제거)
+│       │   └── NNNN-*.md              ← 개별 결정(패치 방식, 기록 기반 최종 답, 허용 목록, 알림만, Aside 자동 승인(대체됨), 전용 세션, tick 키, Aside 제거, ego lite 웹 도구)
 │       └── findings.md                ← 지금 풀 수 없는 문제와 그 이유
 ├── ocuclaw-patch/
 │   └── AGENTS.md                      ← OcuClaw 주입 코드·패처·실측 비교의 범위와 불변 조건
@@ -54,7 +54,7 @@ openclaw-g2/
 - Hey Even 프롬프트·라우팅을 바꿀 때: `even-ai-settings/AGENTS.md`(Gateway를 멈추고 써야 하는 이유).
 - 플러그인을 켜고 끄거나 tick 설정을 바꿀 때: `docs/engineering-notes.md`의 허용 목록·tick 키 항목.
 - 문서·스크립트에 경로·호스트·값을 적을 때: `docs/security.md`의 공개 저장소 규칙.
-- 리체의 권한이나 웹 도구(브라우저, MCP 서버)와 그 승인 정책을 건드릴 때: `docs/tracking/decisions/0008-remove-aside.md`(0005를 대체)와 `docs/security.md`의 권한 절. 사용자 결정 없이 웹 도구를 붙이거나 승인 정책을 정하지 않는다.
+- 리체의 권한이나 웹 도구(브라우저, MCP 서버, 브라우저 스킬)와 그 승인 정책을 건드릴 때: `docs/tracking/decisions/0009-ego-lite-web-tool.md`(웹 도구는 ego lite, 0008 일부 대체), `0008-remove-aside.md`, `docs/security.md`의 권한 절. 사용자 결정 없이 웹 도구를 더 붙이거나 승인 정책·브라우저 프로필을 바꾸지 않는다.
 
 ## 문제가 생기면
 
@@ -63,7 +63,7 @@ openclaw-g2/
 - 패치 적용 뒤 Gateway가 OcuClaw 로드를 거부하거나 `Connectivity check: ok`로 돌아오지 않는다(백업으로 되돌린 뒤 보고).
 - `plugins.allow` 적용 뒤 켜진 플러그인 목록과 허용 목록이 다르다(플러그인이 조용히 꺼졌다).
 - Hey Even 응답이 다시 잘리거나 `verify-live`가 FAIL이다.
-- 리체에게 사용자가 정하지 않은 웹 도구(MCP 서버, 브라우저)가 붙어 있거나, 리체가 시키지 않은 웹 쓰기 동작을 했다는 흔적이 있다.
+- 리체에게 사용자가 정하지 않은 웹 도구(MCP 서버, 브라우저, 브라우저 스킬. ego lite는 결정 0009로 정한 것)가 붙어 있거나, 리체가 시키지 않은 웹 쓰기 동작을 했다는 흔적이 있다.
 - 작업이 사람만 할 수 있는 단계(키 입력, 페어링, 첫 사용 확인)를 요구한다.
 
 그 밖에 지금 풀 수 없는 문제는 `docs/tracking/findings.md`에 현상·영향·지금 못 고치는 이유·방법으로 적는다.

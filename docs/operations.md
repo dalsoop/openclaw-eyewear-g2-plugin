@@ -28,13 +28,15 @@ node scripts/apply-live-tick-allowlist.mjs --dry-run  # 6. tick 설정 + plugins
 node scripts/apply-live-tick-allowlist.mjs --restart  #    적용 후 재시작
 scripts/apply-memory.sh                               # 7. llama.cpp 임베딩(대화형) + 내장 브라우저 끔 + 남은 Aside MCP 제거
 scripts/patch-watch.sh install                        # 8. 패치 감시 LaunchAgent
+node scripts/apply-ego-browser.mjs                    # 9. 웹 도구 ego lite 연결(스킬 키 하나, 재시작 없음)
 ```
 
 - 2단계 뒤 Gateway 로그에서 OcuClaw가 로드되는지 확인한다. 출처 경고만 있으면 정상이고, 로드가 거부되면 1단계 백업으로 되돌리고 멈춘다.
 - 6단계는 아직 설치되지 않은 `llama-cpp`도 허용 목록에 미리 넣는다. 그래서 7단계에서 설치한 플러그인이 배타 목록 때문에 꺼지지 않는다. 허용 목록이 생긴 뒤 새로 설치한 플러그인은 목록 밖이라 켜진 목록에도 나오지 않는다. 그래서 6단계를 다시 돌려도 들어가지 않는다. `scripts/lib/live-tick-allowlist.mjs`의 `ALLOWLIST_INCLUDE`에 ID를 더한 뒤 6단계를 다시 돌린다.
 - 7단계의 두 질문: 대화 모델(수 GB)은 **No**, 임베딩 모델만(약 0.3 GB)은 **Yes**. 사람 없이 돌리지 않는다.
-- 7단계는 리체에게 브라우저 도구를 붙이지 않는다. 예전 판이 등록한 `mcp.servers.aside`가 남아 있으면 지우고, 없으면 건너뛴다(결정 0008).
+- 7단계는 웹 도구를 붙이지 않는다. 예전 판이 등록한 `mcp.servers.aside`가 남아 있으면 지우고, 없으면 건너뛴다(결정 0008). 웹 도구 ego lite는 9단계가 붙인다.
 - 8단계는 2단계 뒤에 한다. 패치가 없는 상태에서 감시자를 먼저 켜면 다음 Gateway 시작 때 바로 알림이 간다.
+- 9단계는 ego lite를 설치하고 온보딩을 마친 뒤에 한다(`ego-browser` 명령과 ego lite의 `ego-browser` 스킬이 있어야 한다). `skills.entries.ego-browser.enabled` 하나만 쓰고 Gateway를 재시작하지 않는다. 성격 파일의 "브라우저(ego lite)" 절은 3단계가 처음 설치 때만 복사하므로, 이미 설치된 곳에서는 백업 뒤 workspace `AGENTS.md`의 브라우저 절만 `persona/AGENTS.md`의 것으로 바꾼다(결정 0009).
 
 ## 사람만 하는 단계
 
@@ -69,13 +71,14 @@ scripts/patch-watch.sh uninstall                     # 감시자 제거
 - workspace는 성격 파일 4개(`IDENTITY.md`, `SOUL.md`, `USER.md`, `AGENTS.md`)만 되돌린다. 백업에 함께 들어 있는 `DREAMS.md`, `MEMORY.md` 등 다른 `*.md`는 리체가 쓴 기억이라 그대로 둔다. 필요하면 백업 폴더에서 손으로 꺼낸다.
 - 복원은 백업에 있는 파일만 되돌린다. 백업 뒤 새로 생긴 workspace 파일, 설치한 llama.cpp 플러그인, 내려받은 임베딩 모델, `~/.openclaw/ocuclaw-g2/` 상태 폴더는 지우지 않는다.
 - 플러그인 폴더는 임시 이름으로 복사한 뒤 바꿔 넣으므로 복사 도중 실패해도 기존 폴더가 남는다.
-- 2026-10-30 이전에 만든 백업에는 Aside가 들어 있다: `openclaw.json`의 `mcp.servers.aside`(자동 승인)와 workspace `AGENTS.md`의 옛 "브라우저(Aside)" 절. 그런 백업으로 복원했으면 `scripts/apply-memory.sh`를 다시 돌려 MCP 서버를 지우고, workspace `AGENTS.md`의 그 절을 `persona/AGENTS.md`의 "브라우저" 절로 바꾼다. 다른 절에 설치 뒤 고친 내용이 있으면 남기고 그 절만 바꾼다(`--force`는 성격 파일 4개를 모두 덮어쓰므로 쓰지 않는다, 결정 0008).
+- 2026-10-30 이전에 만든 백업에는 Aside가 들어 있다: `openclaw.json`의 `mcp.servers.aside`(자동 승인)와 workspace `AGENTS.md`의 옛 "브라우저(Aside)" 절. 그런 백업으로 복원했으면 `scripts/apply-memory.sh`를 다시 돌려 MCP 서버를 지우고, workspace `AGENTS.md`의 그 절을 `persona/AGENTS.md`의 "브라우저(ego lite)" 절로 바꾼다. 다른 절에 설치 뒤 고친 내용이 있으면 남기고 그 절만 바꾼다(`--force`는 성격 파일 4개를 모두 덮어쓰므로 쓰지 않는다, 결정 0008).
+- ego lite 웹 도구를 떼어 내려면 `openclaw config set skills.entries.ego-browser.enabled false --strict-json`을 쓰고 workspace `AGENTS.md`의 브라우저 절을 바꾼다(결정 0009의 되돌리기). 키를 지우거나(unset) 결정 0009 이전에 만든 백업으로 복원하는 것만으로는 떨어지지 않는다. 키가 없으면 스킬이 기본으로 보인다.
 
 ## 검사 명령
 
 | 명령 | 통과 조건 |
 |---|---|
-| `/opt/homebrew/opt/node/bin/node --test ocuclaw-patch/test/ even-ai-settings/test/ scripts/lib/ scripts/patch-watch/` | 103개 모두 pass |
+| `/opt/homebrew/opt/node/bin/node --test ocuclaw-patch/test/ even-ai-settings/test/ scripts/lib/ scripts/patch-watch/` | 133개 모두 pass |
 | `scripts/ocuclaw-patch.sh check` | `check: all patch points present`(종료 코드 5 `payload differs from repo`는 훅은 살아 있고 설치본 payload가 저장소와 다를 뿐이다. `apply`로 맞춘다) |
 | `scripts/ocuclaw-patch.sh verify-live` | `verify-live: PASS`(실제 Even AI 요청 3건, 1~2분) |
 | `scripts/even-ai-settings.sh check` | `store ok, config ok` |
@@ -83,7 +86,8 @@ scripts/patch-watch.sh uninstall                     # 감시자 제거
 | `node scripts/check-live-tick-allowlist.mjs` | `ALL CHECKS PASSED`(`--skip-tick`이면 tick 호출 생략) |
 | `scripts/patch-watch.sh status` | `loaded`, 최근 로그에 `check ok` |
 | `openclaw memory status --deep --agent main` | Embeddings·Vector store ready |
-| `openclaw mcp list` | `aside`가 없음(리체에게 붙인 MCP 웹 도구가 없다) |
+| `openclaw mcp list` | `aside`가 없음(MCP로 붙인 웹 도구가 없다. 웹 도구 ego lite는 스킬이다) |
+| `node scripts/apply-ego-browser.mjs --check` | `ALL CHECKS PASSED`(ego-browser 실행, 스킬이 리체에게 보임, `exec` 승인 질문 없음, 내장 브라우저 꺼짐) |
 | `scripts/public-safety-scan.sh` | `public-safety-scan: clean` |
 
 `verify-live`와 `even-ai-settings.sh verify`는 실제 모델을 부르므로 비용이 들고, 질문이 안경 전용 세션 기록에 `(확인용 <nonce>)` 꼬리표와 함께 남는다.
@@ -107,6 +111,7 @@ scripts/patch-watch.sh uninstall                     # 감시자 제거
 | `memory.search.provider` | `local` | `apply-memory.sh` |
 | `mcp.servers.aside` | 없음(남아 있으면 `openclaw mcp unset aside`로 지운다) | 〃 |
 | `browser.enabled` | `false` | 〃 |
+| `skills.entries.ego-browser.enabled` | `true`(떼어 낼 때는 `false`. 지우면 기본으로 보이므로 unset으로는 떨어지지 않는다) | `apply-ego-browser.mjs` |
 | `models.providers.opencodex.apiKey` | 리체 전용 키(비밀) | `set-opencodex-key.sh`(사람) |
 
 `evenAiDedicatedSessionKey`는 설정하지 않아 기본값 `ocuclaw:even-ai`를 쓴다. `sonioxApiKey`(Soniox 음성, 월 한도 $5·알림 $3)는 이 저장소가 바꾸지 않는다.
@@ -129,6 +134,7 @@ scripts/patch-watch.sh uninstall                     # 감시자 제거
 | `OPENCLAW` | `~/.local/bin/openclaw` | 모든 셸·Node 스크립트, 감시자 | OpenClaw CLI 경로 |
 | `GATEWAY_WAIT_POLL_SEC` | 2 | `restore.sh`, `apply-memory.sh` | Gateway 상태 확인 간격(시험 때 줄인다) |
 | `OPENCLAW_HOME` | `~/.openclaw` | `backup.sh`, `restore.sh`, 성격 적용, tick 검사 | OpenClaw 홈(시험 때 임시 폴더로) |
+| `EGO_BROWSER` | `~/.local/bin/ego-browser` | `apply-ego-browser.mjs` | ego lite CLI 경로 |
 
 `OCUCLAW_G2_*` 중 Gateway 프로세스에서 읽는 값은 Gateway LaunchAgent 환경에 넣고 재시작해야 효과가 있다. 감시자 값은 `scripts/patch-watch/launchagent.plist.template`(설치 때 PATH만 넣는다)에 추가하고 `scripts/patch-watch.sh install`을 다시 돌린다.
 
@@ -144,6 +150,7 @@ scripts/patch-watch.sh uninstall                     # 감시자 제거
 | `~/.openclaw/ocuclaw-g2/unsupported-gateway-methods.json` | Gateway가 거부한 메서드(호스트 버전별) |
 | `~/Library/LaunchAgents/com.openclaw-g2.patch-watch.plist` | 감시자 LaunchAgent |
 | `~/Library/Logs/openclaw/gateway.log` | Gateway 로그(`[ocuclaw-g2]` 줄 포함) |
+| `~/.agents/skills/ego-browser` | 리체가 보는 ego lite 스킬(설치된 ego lite 앱 안 스킬 폴더로 가는 링크. 이 저장소가 만들지 않는다) |
 
 ## 공개 저장소로 올리기
 

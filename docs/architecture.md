@@ -17,7 +17,7 @@
 - 휴대폰은 tailnet 안에서만 들어온다. 네 경로 모두 `tailscale serve`이고 funnel은 쓰지 않는다. `:8445`는 opencodex 포워더(이전에 8443을 쓰다 옮김)로, 이 저장소와 관계없지만 같은 Mac의 serve 설정에 있어 함께 건드리지 않는다.
 - OcuClaw는 Gateway 안에 로드되는 플러그인이다. relay 포트(47800)에서 OcuClaw 앱 연결과 Even AI HTTP 엔드포인트(`/v1/chat/completions`)를 함께 받고, 에이전트 실행은 Gateway에 WebSocket 클라이언트(`gateway/openclaw-client.js`)로 붙어 요청한다.
 - 에이전트는 OpenClaw의 `main` 에이전트(이름 "리체")다. 성격 파일은 `~/.openclaw/workspace/`에, 대화 기록은 `~/.openclaw/agents/main/agent/openclaw-agent.sqlite`에 있다.
-- 리체에게는 브라우저 도구가 없다. 내장 브라우저는 꺼져 있고, MCP 서버로 붙인 웹 도구도 없다(결정 0008, 예전의 Aside MCP를 뺐다).
+- 리체의 웹 도구는 에이전트 브라우저 ego lite다(결정 0009). MCP 서버가 아니라 ego lite가 내놓은 `ego-browser` 스킬을 리체가 `exec` 도구로 부른다(`ego-browser nodejs`). 로그인된 기본 프로필을 쓴다. 내장 브라우저는 꺼져 있고, MCP 서버로 붙인 웹 도구는 없다(예전의 Aside MCP는 결정 0008로 뺐다).
 
 ## 대표 흐름: Hey Even 질문 하나
 
@@ -42,7 +42,7 @@ OcuClaw 앱 대화(`:8444`)는 같은 클라이언트를 쓰지만 실행 뒤 �
 |---|---|---|
 | `ocuclaw-patch/` | 주입 코드(payload), 적용·검사 도구(patcher, cli), 실측 비교(verify-live) | OcuClaw 설치본을 바꾼다. 다른 구성 요소에 의존하지 않는다 |
 | `even-ai-settings/` | Hey Even 라우팅·프롬프트를 config와 앱 안 저장소 양쪽에 쓰고, 전용 세션을 실측 검증 | `ocuclaw-patch/verify-live.mjs`의 요청·기록 조회 함수와 `persona/even-ai-system-prompt.txt`를 쓴다 |
-| `scripts/` | 사람이 부르는 진입 셸 스크립트, 설정 적용(성격·언어, tick·허용 목록, 기억·내장 브라우저 끔), 백업·복원, 공개 안전 검사 | 각 모듈의 CLI를 부른다. `openclaw` CLI로 설정을 바꾼다 |
+| `scripts/` | 사람이 부르는 진입 셸 스크립트, 설정 적용(성격·언어, tick·허용 목록, 기억·내장 브라우저 끔, 웹 도구 ego lite), 백업·복원, 공개 안전 검사 | 각 모듈의 CLI를 부른다. `openclaw` CLI로 설정을 바꾼다 |
 | `scripts/patch-watch.mjs` + `scripts/patch-watch/` | Gateway 시작을 감지해 패치 검사 후 휴대폰 알림을 보내는 상주 감시자(LaunchAgent `com.openclaw-g2.patch-watch`) | `ocuclaw-patch/cli.mjs check`를 자식 프로세스로 부르고 출력과 종료 코드만 해석한다 |
 | `persona/` | 리체 성격 파일 원본과 안경용 시스템 프롬프트(내용물, 코드 아님) | 적용 스크립트가 `~/.openclaw/workspace/`와 설정에 복사한다 |
 
