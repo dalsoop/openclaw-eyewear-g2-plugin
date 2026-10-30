@@ -7,13 +7,6 @@
 - **지금 못 고치는 이유**: main 이력을 force-push하지 않는 정책이므로 기존 커밋 메타데이터를 다시 쓰지 않는다.
 - **방법**: `docs/public-safety-baseline.json`에 SHA·규칙·사유만 기록했다(한 커밋의 두 발견). 2026-10-30 정책으로 PR 게이트는 PR이 더하는 커밋(`base..head`)과 인덱스·작업 트리를 검사하고, 전수 감사는 모든 ref를 검사한다. 기준선은 면제 목록이 아니다.
 
-## PR 병합이 개인 이메일을 새로 남길 수 있다
-
-- **현상**: GitHub의 PR 병합은 병합한 계정의 커밋 이메일을 새로 쓴다. merge·squash는 새 커밋의 작성자, rebase는 PR 커밋 각각의 커미터다. 2026-10-30 `gh pr merge --author-email`에 GitHub noreply 주소를 주자 GitHub가 "Invalid email address"로 거부했다. 이는 병합 계정의 이메일 비공개 설정이 꺼져 있다는 신호다(PR #1 병합 작성자도 개인 주소였다).
-- **영향**: 이 상태로 병합하면 개인 이메일이 공개 이력에 새로 남는다. 전수 감사 출력은 값을 찍지 않으므로 이런 발견을 GitHub 자체 계정 커미터와 구별하려면 병합 직후 병합 범위를 따로 검사해야 한다.
-- **지금 못 고치는 이유**: 계정의 이메일 비공개 설정은 계정 소유자가 정할 일이다. 저장소에서 바꿀 수 없고 main 직접 push는 금지다.
-- **방법**: 계정 소유자가 GitHub Settings → Emails에서 "Keep my email addresses private"를 켜고 켰다고 확인해 주면(지금 gh 토큰으로는 이 설정을 읽을 수 없다) rebase로 병합한다. 직후 깨끗한 체크아웃에서 `scripts/public-safety-scan.sh --base <병합 전 main SHA> --head origin/main`이 clean인지 확인한다(`docs/operations.md`). 그 전에는 PR을 병합하지 않는다.
-
 ## opencodex 키가 자리 채움 값이다
 
 - **현상**: `models.providers.opencodex.apiKey`에 짧은 자리 채움 값이 들어 있다. opencodex가 loopback 호출의 키를 검사하지 않아 지금은 모든 호출이 성공한다.
