@@ -69,7 +69,7 @@ scripts/patch-watch.sh uninstall                     # 감시자 제거
 - workspace는 성격 파일 4개(`IDENTITY.md`, `SOUL.md`, `USER.md`, `AGENTS.md`)만 되돌린다. 백업에 함께 들어 있는 `DREAMS.md`, `MEMORY.md` 등 다른 `*.md`는 리체가 쓴 기억이라 그대로 둔다. 필요하면 백업 폴더에서 손으로 꺼낸다.
 - 복원은 백업에 있는 파일만 되돌린다. 백업 뒤 새로 생긴 workspace 파일, 설치한 llama.cpp 플러그인, 내려받은 임베딩 모델, `~/.openclaw/ocuclaw-g2/` 상태 폴더는 지우지 않는다.
 - 플러그인 폴더는 임시 이름으로 복사한 뒤 바꿔 넣으므로 복사 도중 실패해도 기존 폴더가 남는다.
-- 2026-10-30 이전에 만든 백업의 `openclaw.json`에는 `mcp.servers.aside`(자동 승인)가 들어 있다. 그런 백업으로 복원했으면 `scripts/apply-memory.sh`를 다시 돌려 지운다(결정 0008).
+- 2026-10-30 이전에 만든 백업에는 Aside가 들어 있다: `openclaw.json`의 `mcp.servers.aside`(자동 승인)와 workspace `AGENTS.md`의 옛 "브라우저(Aside)" 절. 그런 백업으로 복원했으면 `scripts/apply-memory.sh`를 다시 돌려 MCP 서버를 지우고, workspace `AGENTS.md`의 그 절을 `persona/AGENTS.md`의 "브라우저" 절로 바꾼다. 다른 절에 설치 뒤 고친 내용이 있으면 남기고 그 절만 바꾼다(`--force`는 성격 파일 4개를 모두 덮어쓰므로 쓰지 않는다, 결정 0008).
 
 ## 검사 명령
 
