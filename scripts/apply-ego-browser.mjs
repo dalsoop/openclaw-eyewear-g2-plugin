@@ -45,8 +45,8 @@ function report(name, problems, okDetail) {
 }
 // Run a CLI with a time limit; a non-zero exit still hands back stdout
 // (openclaw prints JSON errors there).
-function run(cmd, argv) {
-  const r = spawnSync(cmd, argv, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], timeout: 60_000 });
+function run(cmd, argv, timeout = 60_000) {
+  const r = spawnSync(cmd, argv, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], timeout });
   return {
     ok: !r.error && r.status === 0,
     status: r.error ? r.error.code || "error" : r.status,
@@ -105,7 +105,8 @@ if (failed) {
 console.log("ALL CHECKS PASSED");
 
 if (restart) {
-  const r = run(OPENCLAW, ["gateway", "restart"]);
+  // OpenClaw's own restart health wait is 60 s plus the launchd drain.
+  const r = run(OPENCLAW, ["gateway", "restart"], 150_000);
   process.stdout.write(r.out);
   if (!r.ok) {
     console.error(`gateway restart exited ${r.status}: ${firstLine(r.err)}`);
