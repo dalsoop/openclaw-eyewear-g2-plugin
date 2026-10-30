@@ -23,5 +23,5 @@
 - 로그인된 사이트에서 무언가를 해 달라는 요청(Hey Even 음성 포함)은 리체가 할 수 없다.
 - 0005가 받아들였던 위험(잘못 알아들은 음성이나 웹 페이지 속 지시문 때문에 확인 없이 일어나는 쓰기 동작)이 없어진다.
 - 웹 도구를 다시 붙이려면 사용자가 붙일 도구와 그 승인 정책(확인 없이 실행할지, 동작마다 확인받을지)을 먼저 정하고 새 결정으로 남긴다.
-- 이 변경 전에 만든 백업의 `openclaw.json`에는 `mcp.servers.aside`(자동 승인)가 들어 있다. 그런 백업으로 복원했으면 `scripts/apply-memory.sh`를 다시 돌려 지운다.
+- 이 변경 전에 만든 백업에는 `openclaw.json`의 `mcp.servers.aside`(자동 승인)와 workspace `AGENTS.md`의 옛 Aside 절이 들어 있다. 그런 백업으로 복원했으면 `scripts/apply-memory.sh`를 다시 돌려 MCP 서버를 지우고, 그 성격 파일의 브라우저 절도 바꾼다(`docs/operations.md`의 되돌리기).
 - `apply-persona-locale.sh`는 처음 설치 뒤 달라진 성격 파일을 건너뛰므로, 저장소 `persona/AGENTS.md`의 브라우저 절을 고쳐도 설치본 workspace의 `AGENTS.md`는 저절로 바뀌지 않는다.
