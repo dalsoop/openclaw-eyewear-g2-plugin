@@ -90,6 +90,12 @@ test("execProblems fails closed when the agent's scope is not reported", () => {
     "exec policy for agent main not reported",
   ]);
   assert.deepEqual(execProblems(null), ["no exec policy"]);
+  // The script hands over JSON from a non-zero exit only when it says ok:false;
+  // that must fail even if the rest of the object looks like a ready policy.
+  assert.deepEqual(execProblems({ ...policy(), ok: false, error: { message: "boom" } }), [
+    "exec policy not reported (boom)",
+  ]);
+  assert.deepEqual(execProblems({ ...policy(), ok: false }), ["exec policy not reported (unknown error)"]);
 });
 
 test("execProblems checks the agent's own tools.exec scope, not only the global one", () => {
