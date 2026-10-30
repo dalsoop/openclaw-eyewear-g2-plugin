@@ -1,7 +1,8 @@
 #!/bin/sh
 # Local memory embeddings (OpenClaw-managed llama.cpp); built-in browser off;
-# no browser tool for the agent (a leftover Aside MCP server is removed, see
-# docs/tracking/decisions/0008-remove-aside.md).
+# a leftover Aside MCP server is removed (docs/tracking/decisions/0008-remove-aside.md).
+# The agent's web tool, ego lite, is attached by scripts/apply-ego-browser.mjs
+# (decision 0009), not here.
 # Back up first with scripts/backup.sh. Safe to re-run.
 set -eu
 ROOT=$(cd "$(dirname "$0")/.." && pwd)

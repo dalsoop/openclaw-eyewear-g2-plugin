@@ -69,6 +69,16 @@
 - 감시자는 `ocuclaw-patch/cli.mjs check`의 출력 형식(`  missing: <이름>`, `  stale: <파일>` 줄)과 종료 코드(0, 3, 5)에 의존한다. 5(payload 내용만 저장소와 다름)는 저장소 편집·브랜치 전환만으로도 나오므로 알림하지 않는다. `check` 출력을 바꾸면 감시자 해석도 함께 고친다. 형식이 어긋나면 "check error"로 기록되고 알림이 가지 않는다.
 - 시험: 패치를 하나 뺀 사본이 아니라 실제 설치본에서 훅 줄 하나를 지우고 Gateway를 재시작하면 알림이 가는지, 다시 적용하고 재시작하면 알림이 없는지 본다. 끝나면 반드시 재적용한다.
 
+## 리체가 ego lite 스킬을 보는 경로
+
+- 리체는 ego lite 스킬을 OpenClaw의 개인 에이전트 스킬 폴더 `~/.agents/skills/ego-browser`에서 찾는다(`openclaw skills info ego-browser --agent main --json`의 `source`가 `agents-skills-personal`). 이 링크는 `~/.local/share/ego/ego-skills`와 `active_version_dir`(지금 설치된 판)를 거쳐 ego lite 앱 안의 스킬 폴더로 간다. 이 저장소가 만든 링크가 아니다(2026-10-30 아침에 생겼다). ego lite를 올리면 그 판의 스킬을 보게 되므로, 올린 뒤에는 `--check`로 다시 확인한다. 스킬 본문은 `ego-browser skill`을 먼저 돌리라는 안내뿐이고, 판에 맞는 사용법은 그 명령이 찍는다.
+- 스킬은 키가 없어도 기본으로 보인다. `skills.entries.ego-browser.enabled`를 지우면(unset) 떨어지지 않고 `false`로 써야 숨는다. 결정 0009 이전에 만든 백업으로 복원해도 같은 이유로 스킬은 남는다.
+- 개인 에이전트 스킬 폴더는 기본 상태 폴더(`~/.openclaw`)일 때만 읽힌다. `OPENCLAW_STATE_DIR`을 바꾸거나 `agents.entries.main.skills`(에이전트별 스킬 허용 목록)를 두면 스킬이 사라질 수 있다. 허용 목록을 두면 `ego-browser`를 넣는다.
+- 스킬 설정(`skills.*`)은 Gateway 재시작 없이 바로 적용된다(OpenClaw 2026.10.5 문서의 hot reload 표).
+- 승인은 `exec` 정책을 따른다. 지금은 OpenClaw 기본값(security full, ask off)이라 질문 없이 실행된다. `openclaw exec-policy preset cautious` 같은 변경은 ego lite 호출에도 질문을 붙이고, 안경 경로에서는 답할 화면이 없어 웹 작업이 멈춘다.
+- `ego-browser --version`은 판 정보를 표준 오류로 찍는다.
+- **확인**: `node scripts/apply-ego-browser.mjs --check`. 실제 동작은 리체에게 무해한 조회(예: example.com 제목)를 시키고 대화 기록에 `ego-browser nodejs` 호출이 남는지 본다.
+
 ## 페르소나 파일은 개발 지침이 아니다
 
 `persona/AGENTS.md`는 리체에게 주는 작업 공간 규칙이다(`~/.openclaw/workspace/AGENTS.md`로 복사된다). 이 저장소를 고치는 개발 지침으로 읽지 않는다. `scripts/apply-persona-locale.sh`는 처음 설치 뒤 workspace에 `.openclaw-g2-installed` 표식을 남기고, 그 뒤로는 저장소 원본과 달라진 성격 파일을 건너뛴다. 리체가 대화에서 정해 적은 세부 성격이나 `USER.md` 지시문을 지키기 위해서다. 저장소 원본으로 되돌리려면 `--force`를 쓴다. 표식을 지우면 다음 실행이 처음 설치처럼 모두 덮어쓴다.

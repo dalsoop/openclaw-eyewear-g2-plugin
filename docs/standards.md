@@ -31,6 +31,7 @@
 - `~/.openclaw/even-ai-settings.json`은 Gateway가 멈춘 상태에서만 쓴다. 쓰기 전에 멈춘 뒤의 파일을 다시 읽고, `routingMode`·`systemPrompt` 외 필드는 보존한다. 저장소 `version`이 1이 아니면 쓰지 않고 멈춘다.
 - Hey Even 시스템 프롬프트는 config(`plugins.entries.ocuclaw.config.evenAiSystemPrompt`)와 앱 안 저장소 양쪽에 같은 값으로 넣는다. 한쪽만 바꾸면 위반이다. 프롬프트 원본은 `persona/even-ai-system-prompt.txt` 하나이며, 앞뒤 공백을 지운 뒤 1~4000 코드포인트여야 한다.
 - Tailscale serve 경로(:8443, :8444, :8445, :8460), opencodex 설정, 모델 목록, OpenClaw 버전은 이 저장소에서 바꾸지 않는다. OcuClaw 버전을 고정하지 않는다.
+- 리체의 웹 도구 설정은 `skills.entries.ego-browser.enabled` 하나만 쓴다. `exec` 승인 정책, ego lite 설치·프로필, `~/.agents/skills` 링크, MCP 서버는 이 저장소에서 바꾸지 않는다(결정 0009).
 - Gateway를 재시작한 스크립트는 `openclaw gateway status`에 `Connectivity check: ok`가 나올 때까지 기다린 뒤 다음 단계로 간다.
 
 ## OcuClaw 주입 코드
@@ -43,7 +44,7 @@
 
 ## 시험
 
-- 단위 시험: `/opt/homebrew/opt/node/bin/node --test ocuclaw-patch/test/ even-ai-settings/test/ scripts/lib/ scripts/patch-watch/`가 모두 통과해야 한다(지금 124개). 주입 코드, 다듬기 규칙, 허용 목록 계산, 감시 판단 로직을 바꾸면 이 명령을 돌린다.
+- 단위 시험: `/opt/homebrew/opt/node/bin/node --test ocuclaw-patch/test/ even-ai-settings/test/ scripts/lib/ scripts/patch-watch/`가 모두 통과해야 한다(지금 133개). 주입 코드, 다듬기 규칙, 허용 목록 계산, 감시 판단 로직을 바꾸면 이 명령을 돌린다.
 - 다듬기 규칙(기호 정리·길이 정책)을 바꾸면 경계 사례 시험(정확히 350, 351, 경계 없음, `다.` 끝, 이모지만, 빈 답, `…` 중복)을 함께 고친다.
 - 패치 지점을 바꾸면 깨끗한 원본 사본 기준 시험(`ocuclaw-patch/test/patcher.test.mjs`: 원본은 전부 빠짐, 적용 후 통과, 두 번 적용해도 변화 없음, 훅 하나 지우면 그 지점만 지목, 기준 문자열 하나 없으면 아무것도 안 씀)이 통과해야 한다.
 - 설치본에 영향을 주는 변경은 단위 시험만으로 통과가 아니다. `scripts/ocuclaw-patch.sh all`(적용 → 재시작 → 검사 → `verify-live`)이 `verify-live: PASS`로 끝나야 한다.
