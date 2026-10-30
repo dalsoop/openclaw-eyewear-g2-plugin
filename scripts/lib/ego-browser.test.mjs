@@ -1,5 +1,5 @@
 // Unit tests for the pure helpers behind apply-ego-browser.
-// Run: node --test scripts/lib/
+// Run: /opt/homebrew/opt/node/bin/node --test scripts/lib/
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
@@ -23,7 +23,7 @@ const readySkill = {
 function policy({ status = "allowed", security = "full", ask = "off", agentId = "main" } = {}) {
   return {
     effectivePolicy: {
-      scopes: [{ configPath: "tools.exec", agentId, security: { effective: security }, ask: { effective: ask } }],
+      scopes: [{ scopeLabel: "tools.exec", configPath: "tools.exec", agentId, security: { effective: security }, ask: { effective: ask } }],
     },
     toolAccess: { agentId, local: { tools: [{ id: "exec", status }, { id: "process", status: "allowed" }] } },
   };
@@ -87,7 +87,19 @@ test("execProblems fails closed when the agent's scope is not reported", () => {
   assert.equal(out.length, 2);
   assert.deepEqual(execProblems({}), [
     "exec tool access for agent main not reported",
-    "tools.exec policy for agent main not reported",
+    "exec policy for agent main not reported",
   ]);
   assert.deepEqual(execProblems(null), ["no exec policy"]);
+});
+
+test("execProblems checks the agent's own tools.exec scope, not only the global one", () => {
+  const p = policy();
+  p.effectivePolicy.scopes.push({
+    scopeLabel: "agent:main",
+    configPath: "agents.entries.main.tools.exec",
+    agentId: "main",
+    security: { effective: "full" },
+    ask: { effective: "always" },
+  });
+  assert.deepEqual(execProblems(p), ["agent:main: exec asks for approval (always)"]);
 });

@@ -1,7 +1,7 @@
 // Pure helpers for attaching ego lite to the agent as its web tool
 // (decision 0009): the `ego-browser` skill that ego lite ships, run through
 // the agent's exec tool without approval prompts. No I/O here so the logic
-// can be unit tested with `node --test scripts/lib/`.
+// can be unit tested with `/opt/homebrew/opt/node/bin/node --test scripts/lib/`.
 
 export const AGENT_ID = "main";
 export const EGO_SKILL = "ego-browser";
@@ -33,7 +33,7 @@ export function skillProblems(info) {
   if (info.name !== EGO_SKILL) problems.push(`unexpected skill name ${JSON.stringify(info.name)}`);
   if (info.disabled !== false) problems.push(`disabled (${EGO_SKILL_ENABLED_PATH} is not true)`);
   if (info.blockedByAllowlist !== false) problems.push("blocked by the skill allowlist");
-  if (info.blockedByAgentFilter !== false) problems.push(`blocked by agents.entries.${AGENT_ID}.skills`);
+  if (info.blockedByAgentFilter !== false) problems.push(`blocked by agents.entries.${AGENT_ID}.skills or agents.defaults.skills`);
   if (info.platformIncompatible !== false) problems.push("platform incompatible");
   if (info.eligible !== true) problems.push("not eligible (missing requirements)");
   if (info.modelVisible !== true) problems.push("not visible to the model");
@@ -43,6 +43,9 @@ export function skillProblems(info) {
 // `openclaw exec-policy show --agent main --json` -> problems that would stop
 // `ego-browser nodejs` from running without a confirmation (empty = runs
 // without prompts, the approval scope decision 0009 keeps from 0005).
+// Every scope reported for the agent counts: the global `tools.exec` one and,
+// when set, `agents.entries.<id>.tools.exec` (scope label "agent:<id>").
+// Per-session /exec overrides are not in this output and are not checked.
 export function execProblems(policy, agentId = AGENT_ID) {
   if (!policy || typeof policy !== "object") return ["no exec policy"];
   const problems = [];
@@ -50,13 +53,13 @@ export function execProblems(policy, agentId = AGENT_ID) {
   const exec = Array.isArray(tools) ? tools.find((t) => t && t.id === "exec") : undefined;
   if (!exec) problems.push(`exec tool access for agent ${agentId} not reported`);
   else if (exec.status !== "allowed") problems.push(`exec tool is ${exec.status}`);
-  const scopes = Array.isArray(policy.effectivePolicy?.scopes) ? policy.effectivePolicy.scopes : [];
-  const scope = scopes.find((s) => s && s.agentId === agentId && s.configPath === "tools.exec");
-  if (!scope) {
-    problems.push(`tools.exec policy for agent ${agentId} not reported`);
-  } else {
-    if (scope.security?.effective !== "full") problems.push(`exec security is ${scope.security?.effective ?? "unknown"}, not full`);
-    if (scope.ask?.effective !== "off") problems.push(`exec asks for approval (${scope.ask?.effective ?? "unknown"})`);
+  const all = Array.isArray(policy.effectivePolicy?.scopes) ? policy.effectivePolicy.scopes : [];
+  const scopes = all.filter((s) => s && s.agentId === agentId);
+  if (scopes.length === 0) problems.push(`exec policy for agent ${agentId} not reported`);
+  for (const scope of scopes) {
+    const label = scope.scopeLabel || scope.configPath || "exec scope";
+    if (scope.security?.effective !== "full") problems.push(`${label}: exec security is ${scope.security?.effective ?? "unknown"}, not full`);
+    if (scope.ask?.effective !== "off") problems.push(`${label}: exec asks for approval (${scope.ask?.effective ?? "unknown"})`);
   }
   return problems;
 }

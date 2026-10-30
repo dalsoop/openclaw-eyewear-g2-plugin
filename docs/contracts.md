@@ -9,7 +9,7 @@
 - 적용 명령은 다시 돌려도 결과가 같다. 다만 출력과 재시작은 명령마다 다르다.
   - `ocuclaw-patch.sh apply`, `even-ai-settings.sh apply`: 바꿀 것이 없으면 `already applied`를 출력하고 0으로 끝나며 Gateway를 건드리지 않는다. `ocuclaw-patch.sh all`도 apply가 바뀐 것이 없으면 재시작하지 않는다.
   - `patch-watch.sh install`: 같으면 `already installed`.
-  - `apply-persona-locale.sh`, `apply-live-tick-allowlist.mjs`, `apply-ego-browser.mjs`: `already applied`를 따로 출력하지 않고 같은 값을 매번 다시 쓴다(재시작 없음, 허용 목록은 `--restart`일 때만).
+  - `apply-persona-locale.sh`, `apply-live-tick-allowlist.mjs`, `apply-ego-browser.mjs`: `already applied`를 따로 출력하지 않고 같은 값을 매번 다시 쓴다(재시작 없음. `apply-live-tick-allowlist.mjs`·`apply-ego-browser.mjs`는 `--restart`일 때만 재시작).
   - `apply-memory.sh`: 이미 된 단계(llama.cpp 플러그인, 임베딩 준비, 남은 `mcp.servers.aside` 제거)는 건너뛰지만 Gateway 재시작과 `memory index --force`는 매번 한다.
 - OpenClaw CLI 경로는 모든 스크립트가 `OPENCLAW` 환경 변수 하나로 바꾼다(기본 `~/.local/bin/openclaw`).
 - 종료 코드 64는 잘못된 하위 명령(사용법 출력), 1은 예상 밖 예외(스택 출력)다.
@@ -83,6 +83,6 @@
 | `node scripts/apply-live-tick-allowlist.mjs [--dry-run] [--restart]` | 켜진 플러그인 목록 | 허용 목록 개수와 내용 출력. 켜진 목록이 비면 예외로 1 |
 | `node scripts/check-live-tick-allowlist.mjs [--skip-tick]` | 실행 중인 Gateway, opencodex | 항목마다 `PASS|FAIL <이름>: <세부>`, `ALL CHECKS PASSED`면 0, 아니면 1. API 키는 길이만 출력 |
 | `scripts/apply-memory.sh` | 대화형(질문 2개) | 먼저 `browser.enabled=false`, `openclaw mcp list --json`에 `aside`가 있으면 `openclaw mcp unset aside`(지운 줄이 출력된다). 목록을 읽지 못하거나 해석할 수 없으면 1(그 뒤 단계는 돌지 않는다). 재시작 뒤 `Connectivity check: ok`를 60초까지 기다린 다음 색인. 마지막에 Embeddings·Vector store 상태. 연결 확인이 안 되면 1 |
-| `node scripts/apply-ego-browser.mjs [--check]` | 설치된 ego lite(`EGO_BROWSER`, 기본 `~/.local/bin/ego-browser`), `openclaw.json` | `skills.entries.ego-browser.enabled=true`를 쓰고(`--check`면 쓰지 않는다) 검사 4개: ego-browser 실행, 스킬이 리체(`main`)에게 보임, `exec`가 승인 질문 없이 실행, `browser.enabled=false`. 항목마다 `PASS|FAIL <이름>: <세부>`, 모두 통과하면 `ALL CHECKS PASSED`와 0, 아니면 1. 모르는 인자는 64. Gateway를 재시작하지 않는다(스킬 설정은 바로 적용된다) |
+| `node scripts/apply-ego-browser.mjs [--check \| --restart]` | 설치된 ego lite(`EGO_BROWSER`, 기본 `~/.local/bin/ego-browser`), `openclaw.json` | `skills.entries.ego-browser.enabled=true`를 쓰고(`--check`면 쓰지 않는다) 검사 4개: ego-browser 실행, 스킬이 리체(`main`)에게 보임, `exec`가 승인 질문 없이 실행, `browser.enabled=false`. `exec` 검사는 리체에게 보고된 모든 범위(전역 `tools.exec`, 있으면 `agents.entries.main.tools.exec`)를 본다. CLI가 0이 아닌 코드로 끝나거나(스스로 `{"ok": false}`를 낸 경우는 그 사유로) 60초 안에 끝나지 않으면 FAIL. 항목마다 `PASS|FAIL <이름>: <세부>`, 모두 통과하면 `ALL CHECKS PASSED`와 0, 아니면 1. `--restart`면 모두 통과한 뒤에만 Gateway를 재시작하고 `Connectivity check: ok`를 120초까지 기다린다(안 되면 1). 모르는 인자나 `--check`와 `--restart`를 함께 주면 64 |
 | `scripts/set-opencodex-key.sh` | 표준 입력(에코 꺼짐) | 키는 파이프로 `openclaw config patch --stdin`에 넘긴다(명령 인자에 남지 않음). 저장 안내 한 줄. 빈 입력이면 1 |
 | `scripts/public-safety-scan.sh [--base REF] [--head REF] [--ocuclaw-dist DIR]` 또는 `--all [--ocuclaw-dist DIR]` | 기본 PR 모드: `origin/main..HEAD`(PR이 더하는 커밋, 공통 조상이 없으면 2)의 blob·메시지·메타데이터·금지 경로. `--all`: 모든 ref의 전체 이력. 두 모드 모두 인덱스·작업 트리·설치된 OcuClaw dist 검사 | 범위와 개수, `FAIL <위치>: <규칙>`(값은 출력 안 함). 위치는 `working tree …`, `index …`, `history …`, `commit message …`, `commit metadata …`. 전수 감사의 알려진 발견은 `(known baseline)`으로 표시하지만 그대로 실패. 0 깨끗함, 1 발견, 2 검사 불가(인자/ref/공통 조상/shallow/graft/index/dist/전수 감사 기준선 오류). `--all`과 `--base`·`--head` 혼용 불가 |
