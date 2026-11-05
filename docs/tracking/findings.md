@@ -17,9 +17,9 @@
 ## OcuClaw 업데이트에 패치가 함께 지워진다
 
 - **현상**: OcuClaw를 업데이트하고 Gateway가 다시 뜨면 12개 항목이 모두 빠진다. 그 사이 Hey Even은 첫 조각만, tick은 "missing api key", 로그에 `sessions.compaction.list` 오류.
-- **영향**: 사람이 알림을 보고 재적용할 때까지 Hey Even을 제대로 쓸 수 없다.
+- **영향**: 사람이 알아차리고 재적용할 때까지 Hey Even을 제대로 쓸 수 없다. 알려 주던 패치 감시자는 결정 0010으로 걷어냈다.
 - **지금 못 고치는 이유**: 근본 수정은 OcuClaw 쪽 일이다. 버그 보고를 아직 하지 않았다.
-- **방법**: OcuClaw에 세 버그(delta 전용 프레임 미처리, tick 키 조회에 문자열 전달, 미지원 메서드 호출)를 보고하고, 정식 수정이 나오면 해당 지점을 지운다.
+- **방법**: OcuClaw를 업데이트한 뒤에는 `scripts/ocuclaw-patch.sh check`로 확인하고 빠졌으면 `scripts/ocuclaw-patch.sh all`로 재적용한다. OcuClaw에 세 버그(delta 전용 프레임 미처리, tick 키 조회에 문자열 전달, 미지원 메서드 호출)를 보고하고, 정식 수정이 나오면 해당 지점을 지운다.
 
 ## 패치된 플러그인의 출처 경고가 남는다
 

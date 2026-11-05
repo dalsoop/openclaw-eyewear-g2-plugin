@@ -9,7 +9,6 @@ OpenClaw 비서 "리체"와 G2 안경용 OcuClaw 플러그인을 내 장비에 �
 - 안경 실시간 화면: `glassesUiLive` tick을 opencodex로 켜고 `plugins.allow`를 정리한다
 - 로컬 기억 검색: OpenClaw가 관리하는 llama.cpp 임베딩(임베딩 모델만)으로 기억을 검색한다
 - 웹 도구 ego lite: 리체가 에이전트 브라우저 ego lite(로그인된 기본 프로필)를 ego lite가 내놓은 스킬로 쓴다. 내장 브라우저는 꺼 두고, 예전에 붙였던 Aside MCP는 지운다
-- 패치 감시: 게이트웨이가 다시 뜰 때 패치 지점이 사라졌으면 휴대폰으로 알린다
 
 ## 요구 사항
 
@@ -30,7 +29,6 @@ scripts/apply-persona-locale.sh                     # 리체 페르소나 + 한�
 scripts/even-ai-settings.sh apply                   # Hey Even 전용 대화 + 안경용 한국어 프롬프트
 node scripts/apply-live-tick-allowlist.mjs --restart # 안경 실시간 화면 + plugins.allow (--dry-run으로 미리 보기)
 scripts/apply-memory.sh                             # 로컬 임베딩, 내장 브라우저 끔, 남은 Aside MCP 제거
-scripts/patch-watch.sh install                      # 패치 감시 LaunchAgent 등록
 node scripts/apply-ego-browser.mjs --restart        # 웹 도구 ego lite 연결 (스킬 키 하나 + 게이트웨이 재시작)
 ```
 
@@ -40,9 +38,10 @@ node scripts/apply-ego-browser.mjs --restart        # 웹 도구 ego lite 연결
 
 ## 재적용 (OcuClaw 업데이트 뒤)
 
-OcuClaw를 업데이트하면 주입한 코드가 지워진다. 휴대폰에 패치 감시 알림이 오면 이 명령을 돌린다.
+OcuClaw를 업데이트하면 주입한 코드가 지워진다. 알려 주는 감시자는 없으므로(결정 0010) OcuClaw를 업데이트했거나 Hey Even 답이 첫 조각만 보이면 먼저 확인하고, 빠진 지점이 있으면 재적용한다.
 
 ```sh
+scripts/ocuclaw-patch.sh check   # 빠진 지점이 있으면 종료 코드 3
 scripts/ocuclaw-patch.sh all
 ```
 
@@ -61,19 +60,17 @@ scripts/ocuclaw-patch.sh verify-live
 
 ```sh
 scripts/restore.sh ~/.openclaw/backups/<시각>   # 게이트웨이를 멈추고 복원한 뒤 다시 켬 (--no-restart로 생략)
-scripts/patch-watch.sh uninstall                # 패치 감시 LaunchAgent 제거
 ```
 
 ## 검사 명령
 
 ```sh
-/opt/homebrew/opt/node/bin/node --test ocuclaw-patch/test/ even-ai-settings/test/ scripts/lib/ scripts/patch-watch/
+/opt/homebrew/opt/node/bin/node --test ocuclaw-patch/test/ even-ai-settings/test/ scripts/lib/
 scripts/ocuclaw-patch.sh check          # 패치 지점이 모두 있는지
 scripts/ocuclaw-patch.sh verify-live    # 실제 Even AI 요청의 답과 대화 기록이 같은지
 scripts/even-ai-settings.sh check       # 앱 저장소와 설정 값이 저장소 값과 같은지
 scripts/even-ai-settings.sh verify      # 연속 요청 두 개가 전용 대화에 들어가고 반말·기호 없음
 node scripts/check-live-tick-allowlist.mjs   # plugins.allow 일치 + 실시간 tick 실제 호출 (--skip-tick)
-scripts/patch-watch.sh status           # LaunchAgent 상태와 최근 검사 결과
 openclaw memory status --deep --agent main   # Embeddings / Vector store ready
 openclaw mcp list                       # aside가 없어야 한다
 node scripts/apply-ego-browser.mjs --check   # ego-browser 실행, 리체에게 스킬이 보임, exec 승인 질문 없음
@@ -90,14 +87,12 @@ scripts/public-safety-scan.sh --all     # 모든 ref 전수 감사 (알려진 �
   3. 길이 제한: 350자(코드포인트 기준, 끝의 `…` 포함). 넘으면 문장 경계에서 자르고 `…`를 붙인다.
 - 최종 답은 대화 기록(transcript)에서 읽는다. 못 읽으면 스트림으로 모은 글을 쓰고, 그것도 비면 "답을 못 가져왔어. 다시 물어봐 줘."를 보낸다. 시간 초과·연결 끊김 같은 OcuClaw 오류 문구도 한국어로 바꾼다.
 
-조정값(환경 변수). 앞의 둘은 OcuClaw 안에서 읽으므로 **게이트웨이 LaunchAgent의 환경**에 넣어야 효과가 있다. 셸에서 export해도 소용없다.
+조정값(환경 변수). 둘 다 OcuClaw 안에서 읽으므로 **게이트웨이 LaunchAgent의 환경**에 넣어야 효과가 있다. 셸에서 export해도 소용없다.
 
 | 변수 | 기본값 | 뜻 |
 |---|---|---|
 | `OCUCLAW_G2_REPLY_BUDGET` | 350 | 안경 답 최대 글자 수(코드포인트) |
 | `OCUCLAW_G2_HISTORY_TIMEOUT_MS` | 5000 | 대화 기록에서 최종 답을 기다리는 시간 |
-| `PATCH_WATCH_RETRY_INTERVAL_SEC` | 30 | 휴대폰 알림 재시도 간격 (패치 감시 LaunchAgent) |
-| `PATCH_WATCH_RETRY_MAX_SEC` | 600 | 휴대폰 알림 재시도 최대 시간 (패치 감시 LaunchAgent) |
 
 ## 잘림 버그 원인
 

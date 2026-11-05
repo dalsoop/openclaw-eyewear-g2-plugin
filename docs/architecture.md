@@ -43,12 +43,11 @@ OcuClaw 앱 대화(`:8444`)는 같은 클라이언트를 쓰지만 실행 뒤 �
 | `ocuclaw-patch/` | 주입 코드(payload), 적용·검사 도구(patcher, cli), 실측 비교(verify-live) | OcuClaw 설치본을 바꾼다. 다른 구성 요소에 의존하지 않는다 |
 | `even-ai-settings/` | Hey Even 라우팅·프롬프트를 config와 앱 안 저장소 양쪽에 쓰고, 전용 세션을 실측 검증 | `ocuclaw-patch/verify-live.mjs`의 요청·기록 조회 함수와 `persona/even-ai-system-prompt.txt`를 쓴다 |
 | `scripts/` | 사람이 부르는 진입 셸 스크립트, 설정 적용(성격·언어, tick·허용 목록, 기억·내장 브라우저 끔, 웹 도구 ego lite), 백업·복원, 공개 안전 검사 | 각 모듈의 CLI를 부른다. `openclaw` CLI로 설정을 바꾼다 |
-| `scripts/patch-watch.mjs` + `scripts/patch-watch/` | Gateway 시작을 감지해 패치 검사 후 휴대폰 알림을 보내는 상주 감시자(LaunchAgent `com.openclaw-g2.patch-watch`) | `ocuclaw-patch/cli.mjs check`를 자식 프로세스로 부르고 출력과 종료 코드만 해석한다 |
 | `persona/` | 리체 성격 파일 원본과 안경용 시스템 프롬프트(내용물, 코드 아님) | 적용 스크립트가 `~/.openclaw/workspace/`와 설정에 복사한다 |
 
-## 패치 감시 흐름
+## 패치 확인
 
-LaunchAgent가 로그인 때 `patch-watch.mjs watch`를 띄운다 → 2초마다 `~/Library/Logs/openclaw/gateway.log` 끝을 읽어 `[gateway] ready` 줄을 찾는다 → 찾으면 `run`을 자식으로 띄운다(이전 run이 살아 있으면 끊는다) → `ocuclaw-patch/cli.mjs check` 결과가 "빠짐"(훅 표식이나 payload 파일이 없음)이면(payload 내용만 저장소와 다른 "낡음"은 로그만) `openclaw nodes status --json`에서 `system.notify`를 지원하는 연결된 휴대폰 노드를 골라 `openclaw nodes notify`로 한국어 알림 → 실패하면 30초 간격, 최대 10분 재시도 → 결과는 `~/.openclaw/ocuclaw-g2/patch-watch.log`. 감시자가 늦게 뜬 경우를 위해 시작 때 마지막 ready 줄을 상태 파일과 비교해 한 번 더 검사한다.
+상주하는 감시자는 없다(결정 0010). OcuClaw 업데이트가 설치본을 덮어써 패치가 빠졌는지는 사람이 `scripts/ocuclaw-patch.sh check`로 확인하고, 빠졌으면 `scripts/ocuclaw-patch.sh all`로 다시 입힌다.
 
 ## 외부 의존
 
