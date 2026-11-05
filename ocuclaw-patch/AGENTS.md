@@ -9,14 +9,14 @@
 - `cli.mjs`: `apply`·`check`·`verify-live`·`all`. 셸 진입점은 `scripts/ocuclaw-patch.sh`.
 - `verify-live.mjs`: 실제 엔드포인트 요청, 대화 기록 DB 조회. 이 함수들은 `even-ai-settings`도 가져다 쓴다.
 
-이 모듈의 범위가 아닌 것: Even AI 라우팅·프롬프트 설정(`even-ai-settings/`), Gateway 시작 감지와 휴대폰 알림(`scripts/patch-watch*`), `openclaw.json` 변경(`scripts/`), 성격 파일(`persona/`). 이 모듈은 `openclaw.json`을 읽기만 하고(토큰) 쓰지 않는다.
+이 모듈의 범위가 아닌 것: Even AI 라우팅·프롬프트 설정(`even-ai-settings/`), `openclaw.json` 변경(`scripts/`), 성격 파일(`persona/`). 이 모듈은 `openclaw.json`을 읽기만 하고(토큰) 쓰지 않는다.
 
 ## 불변 조건
 
 - 원본 파일에 들어가는 것은 한 줄 훅뿐이고, 줄 끝에 `/* ocuclaw-g2:<지점 이름> */` 표식이 붙는다. OcuClaw 원본 코드를 이 폴더에 복사하지 않는다. 기준 문자열은 한 줄 이하.
 - 기준 문자열은 대상 파일 안에서 정확히 한 번 나와야 한다. 하나라도 못 찾거나 두 번 이상이면 `PatchError`로 멈추고 **아무 파일도 쓰지 않는다**(payload 복사도 하지 않는다). 모든 변경을 메모리에서 계산한 뒤에 쓴다.
 - 적용은 멱등이다. 표식이 있는 지점은 건너뛰고, payload가 저장소와 바이트 단위로 같으면 복사하지 않는다. 두 번째 실행 결과는 `already applied`.
-- 검사는 `payload` + 11개 지점을 각각 판정한다. `replace` 지점은 표식이 있고 기준 문자열이 사라졌어야, `after` 지점은 표식과 기준 문자열이 둘 다 있어야 통과다. 설치본 `dist/ocuclaw-g2/index.js`가 없거나, 설치본 `index.js`가 불러오는 파일이 하나라도 없으면 `payload`가 빠짐이다. 저장소에만 새로 생긴 payload 파일은 빠짐이 아니라 낡음이다. 파일은 있는데 내용이 저장소와 다르면 빠짐이 아니라 낡음(`stale`)이다: 훅이 다 있으면 종료 코드 5와 `  stale: <파일>` 줄, 훅도 빠졌으면 3에 `stale:` 줄을 덧붙인다. 저장소 payload를 고치거나 브랜치를 바꾸면 재적용 전까지 5가 나오는 것이 정상이고, 감시자는 이때 알림하지 않는다.
+- 검사는 `payload` + 11개 지점을 각각 판정한다. `replace` 지점은 표식이 있고 기준 문자열이 사라졌어야, `after` 지점은 표식과 기준 문자열이 둘 다 있어야 통과다. 설치본 `dist/ocuclaw-g2/index.js`가 없거나, 설치본 `index.js`가 불러오는 파일이 하나라도 없으면 `payload`가 빠짐이다. 저장소에만 새로 생긴 payload 파일은 빠짐이 아니라 낡음이다. 파일은 있는데 내용이 저장소와 다르면 빠짐이 아니라 낡음(`stale`)이다: 훅이 다 있으면 종료 코드 5와 `  stale: <파일>` 줄, 훅도 빠졌으면 3에 `stale:` 줄을 덧붙인다. 저장소 payload를 고치거나 브랜치를 바꾸면 재적용 전까지 5가 나오는 것이 정상이다.
 - 파일 쓰기는 같은 폴더의 임시 파일 → rename이고 원래 권한을 유지한다.
 - `resolveEvenAiReply`는 절대 예외를 던지지 않고 빈 문자열을 돌려주지 않는다. 순서는 대화 기록 → 스트림 → `NO_REPLY_NOTICE`, 각 후보에 `formatGlassesReply`를 적용한 뒤 비었는지 본다.
 - `formatGlassesReply` = 기호 정리 → trim → 길이 정책. 길이는 `Array.from`(코드포인트)으로 센다. 문자열 `.length`(UTF-16)로 세면 이모지·일부 한자에서 틀린다.
@@ -36,7 +36,7 @@
 
 ## CLI 종료 코드
 
-`apply` 0/2(`dist/index.js`가 없는 폴더도 2), `check` 0/3/5, `verify-live` 0/4, 사용법 64, 예상 밖 예외 1. 패치 감시자가 `check`의 3·5와 `  missing: <이름>`·`  stale: <파일>` 줄 형식을 해석하므로 이 형식을 바꾸면 감시자도 함께 고친다. 지점 이름을 바꾸면 이미 설치본에 들어간 표식과 맞지 않아 검사가 빠짐으로 판정한다.
+`apply` 0/2(`dist/index.js`가 없는 폴더도 2), `check` 0/3/5, `verify-live` 0/4, 사용법 64, 예상 밖 예외 1. 지점 이름을 바꾸면 이미 설치본에 들어간 표식과 맞지 않아 검사가 빠짐으로 판정한다.
 
 ## 시험
 

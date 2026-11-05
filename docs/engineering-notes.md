@@ -48,7 +48,7 @@
 
 ## OcuClaw 업데이트 뒤
 
-- 업데이트는 플러그인 폴더를 통째로 바꾸므로 훅과 `dist/ocuclaw-g2/`가 모두 사라진다. Gateway가 다시 뜨면 감시자가 휴대폰으로 알린다.
+- 업데이트는 플러그인 폴더를 통째로 바꾸므로 훅과 `dist/ocuclaw-g2/`가 모두 사라진다. 알려 주는 감시자는 없다(결정 0010). 업데이트한 뒤에는 `scripts/ocuclaw-patch.sh check`로 먼저 확인한다.
 - 재적용 체크리스트: `scripts/backup.sh` → `scripts/ocuclaw-patch.sh all` → 출력이 `check: all patch points present`와 `verify-live: PASS`인지 확인 → `node scripts/check-live-tick-allowlist.mjs`로 tick 확인.
 - `apply`가 `ABORTED, nothing written`과 `missing anchor: <지점>`으로 끝나면 새 버전에서 그 기준 문자열이 바뀐 것이다. 설치본의 해당 파일을 읽어 같은 역할의 새 줄을 찾아 `PATCH_POINTS`의 기준 문자열만 고친다. 원본 코드를 저장소로 가져오지 않는다. OcuClaw가 버그를 고쳤다면(assistant 처리에서 delta를 다루거나 최종 답을 기록에서 고른다면) 그 지점은 지운다.
 - 업데이트가 `ocuclaw-g2`라는 이름의 dist 폴더를 새로 만들 가능성은 낮지만, 공개 안전 검사는 그 폴더를 우리 사본으로 보고 비교에서 뺀다.
@@ -60,14 +60,6 @@
 ## 로컬 임베딩 설치는 대화형이다
 
 `openclaw models auth login --provider llama-cpp --method local`은 두 번 묻는다. 첫 질문은 수 GB 대화 모델 다운로드다. **No**. 여기서 Yes를 고르면 큰 모델을 받고 기본 모델이 바뀔 수 있다. 두 번째 질문은 임베딩 모델만(약 0.3 GB) 받기다. **Yes**. 2026.10.5에는 `openclaw onboard --llama-cpp-embedding-only` 같은 비대화형 옵션이 없다. 그래서 `scripts/apply-memory.sh`는 사람이 터미널 앞에 있을 때만 돌린다. 이미 `Embeddings: ready`면 이 단계를 건너뛴다. 확인은 `openclaw memory status --deep --agent main`에서 Embeddings·Vector store가 ready인지 본다.
-
-## 패치 감시자
-
-- Gateway 시작 판단은 `gateway.log`의 `[gateway] ready`로 끝나는 줄이다. OpenClaw가 이 로그 문구를 바꾸면 감시자는 아무것도 감지하지 못하고 조용히 지나간다. OpenClaw를 올린 뒤에는 `scripts/patch-watch.sh status`에서 "gateway start detected"가 찍히는지 확인한다.
-- 로그 파일이 줄어들면(회전) 처음부터 다시 읽는다. 줄 중간에서 끊긴 조각은 다음 읽기와 이어 붙인다.
-- 로그인 직후 Gateway가 감시자보다 먼저 뜨면, 감시자가 시작할 때 마지막 ready 줄을 `patch-watch.state.json`과 비교해 한 번 검사한다. 같은 ready 줄로 두 번 알리지 않는다.
-- 감시자는 `ocuclaw-patch/cli.mjs check`의 출력 형식(`  missing: <이름>`, `  stale: <파일>` 줄)과 종료 코드(0, 3, 5)에 의존한다. 5(payload 내용만 저장소와 다름)는 저장소 편집·브랜치 전환만으로도 나오므로 알림하지 않는다. `check` 출력을 바꾸면 감시자 해석도 함께 고친다. 형식이 어긋나면 "check error"로 기록되고 알림이 가지 않는다.
-- 시험: 패치를 하나 뺀 사본이 아니라 실제 설치본에서 훅 줄 하나를 지우고 Gateway를 재시작하면 알림이 가는지, 다시 적용하고 재시작하면 알림이 없는지 본다. 끝나면 반드시 재적용한다.
 
 ## 리체가 ego lite 스킬을 보는 경로
 

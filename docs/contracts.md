@@ -1,6 +1,6 @@
 # 외부 계약
 
-이 저장소의 소비자는 셋이다: (1) Even 앱이 부르는 Even AI 엔드포인트(우리 훅이 응답 본문을 정한다), (2) 사람과 감시자가 부르는 CLI, (3) 휴대폰이 받는 알림.
+이 저장소의 소비자는 둘이다: (1) Even 앱이 부르는 Even AI 엔드포인트(우리 훅이 응답 본문을 정한다), (2) 사람이 부르는 CLI. 휴대폰 알림을 보내던 패치 감시자는 결정 0010으로 걷어냈다.
 
 ## 공통 약속
 
@@ -8,7 +8,6 @@
 - CLI 출력은 영어 한 줄 요약이고 사람·안경·휴대폰에게 보이는 문구는 한국어 반말이다.
 - 적용 명령은 다시 돌려도 결과가 같다. 다만 출력과 재시작은 명령마다 다르다.
   - `ocuclaw-patch.sh apply`, `even-ai-settings.sh apply`: 바꿀 것이 없으면 `already applied`를 출력하고 0으로 끝나며 Gateway를 건드리지 않는다. `ocuclaw-patch.sh all`도 apply가 바뀐 것이 없으면 재시작하지 않는다.
-  - `patch-watch.sh install`: 같으면 `already installed`.
   - `apply-persona-locale.sh`, `apply-live-tick-allowlist.mjs`, `apply-ego-browser.mjs`: `already applied`를 따로 출력하지 않고 같은 값을 매번 다시 쓴다(재시작 없음. `apply-live-tick-allowlist.mjs`·`apply-ego-browser.mjs`는 `--restart`일 때만 재시작).
   - `apply-memory.sh`: 이미 된 단계(llama.cpp 플러그인, 임베딩 준비, 남은 `mcp.servers.aside` 제거)는 건너뛰지만 Gateway 재시작과 `memory index --force`는 매번 한다.
 - OpenClaw CLI 경로는 모든 스크립트가 `OPENCLAW` 환경 변수 하나로 바꾼다(기본 `~/.local/bin/openclaw`).
@@ -39,7 +38,7 @@
 | `all` (셸) | 같음 | apply → 바뀌었으면 `openclaw gateway restart`와 연결 대기 → check → verify-live | 첫 실패 단계의 코드 |
 | `test` (셸) | — | `node --test` 결과 | node 결과 |
 
-지점 이름(검사 출력에 쓰이며 감시자 알림 본문에도 그대로 들어간다): `payload`(설치본 `dist/ocuclaw-g2/index.js`나 그것이 불러오는 파일이 없을 때. 저장소에만 새로 생긴 파일이나 내용만 다르면 빠짐이 아니라 `stale`), `endpoint-import`, `endpoint-final-reply`, `endpoint-korean-errors`, `client-import`, `client-assistant-delta`, `client-hello-features`, `context-import`, `context-compaction-skip`, `context-compaction-note`, `glasses-ui-import`, `glasses-ui-tick-api-key`. 이름을 바꾸면 이미 설치본에 들어간 표식과 맞지 않게 되어 검사가 빠짐으로 판정한다.
+지점 이름(검사 출력에 쓰인다): `payload`(설치본 `dist/ocuclaw-g2/index.js`나 그것이 불러오는 파일이 없을 때. 저장소에만 새로 생긴 파일이나 내용만 다르면 빠짐이 아니라 `stale`), `endpoint-import`, `endpoint-final-reply`, `endpoint-korean-errors`, `client-import`, `client-assistant-delta`, `client-hello-features`, `context-import`, `context-compaction-skip`, `context-compaction-note`, `glasses-ui-import`, `glasses-ui-tick-api-key`. 이름을 바꾸면 이미 설치본에 들어간 표식과 맞지 않게 되어 검사가 빠짐으로 판정한다.
 
 ## `scripts/even-ai-settings.sh` (`even-ai-settings/cli.mjs`)
 
@@ -51,27 +50,6 @@
 | `check` | `check: store ok|MISMATCH, config ok|MISMATCH` | 0 일치, 3 불일치 |
 | `verify` | 질문 2개를 연달아 보내 같은 전용 세션, 맥락 이어짐, 반말·기호·되묻기 없음 확인 | 0 통과, 4 실패 |
 | `test` | 단위 시험 | node 결과 |
-
-## `scripts/patch-watch.sh` (`scripts/patch-watch.mjs`)
-
-| 하위 명령 | 동작 | 종료 코드 |
-|---|---|---|
-| `install` | LaunchAgent `com.openclaw-g2.patch-watch`를 저장소 경로로 만들어 `launchctl bootstrap`. 같으면 `already installed` | 0, bootstrap 실패 1 |
-| `uninstall` | `bootout` 후 plist 삭제 | 0 |
-| `status` | 적재 여부와 감시 로그 마지막 15줄 | 0 |
-| `run [--reason TEXT]` | 검사 1회 + 필요하면 알림(재시도 포함) | 0 알림 불필요(payload만 낡은 경우 포함, 로그만), 10 알림 보냄, 11 끝내 못 보냄, 12 검사 오류(알림 없음) |
-| `watch` | 상주: Gateway 로그를 보다가 시작마다 `run` | 끝나지 않음 |
-| `test` | 단위 시험 | node 결과 |
-
-저장소 폴더를 옮기면 LaunchAgent가 옛 경로를 가리키므로 `install`을 다시 돌려야 한다.
-
-## 휴대폰 알림
-
-- **보내는 때**: Gateway 시작 뒤 검사에서 훅 표식이나 payload 파일이 빠졌을 때만(`check` 종료 코드 3). 정상, payload 내용만 저장소와 다를 때(5), 검사 오류일 때는 보내지 않는다.
-- **수단**: `openclaw nodes notify --node <id> --title … --body … --priority timeSensitive`.
-- **제목**: `OcuClaw 패치가 빠졌어`
-- **본문**: `게이트웨이가 다시 켜졌는데 OcuClaw 패치 지점이 빠졌어: <지점들>. 이대로면 Hey Even 답이 첫 조각만 보여. <저장소 경로(~ 표기)>/scripts/ocuclaw-patch.sh apply 돌리고 openclaw gateway restart 해줘.`
-- **재시도**: 30초 간격, 첫 시도부터 최대 600초. 같은 Gateway 시작에 대해 한 번만 보낸다.
 
 ## 나머지 스크립트
 

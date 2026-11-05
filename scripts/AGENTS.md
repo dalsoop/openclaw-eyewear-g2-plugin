@@ -4,12 +4,12 @@
 
 사람이 부르는 진입 명령과, OpenClaw 설정을 바꾸는 적용 스크립트, 백업·복원, 공개 안전 검사.
 
-- 모듈 진입 래퍼: `ocuclaw-patch.sh`(→ `ocuclaw-patch/cli.mjs`, `all`의 재시작·대기 포함), `even-ai-settings.sh`(→ `even-ai-settings/cli.mjs`), `patch-watch.sh`(→ `patch-watch.mjs`).
+- 모듈 진입 래퍼: `ocuclaw-patch.sh`(→ `ocuclaw-patch/cli.mjs`, `all`의 재시작·대기 포함), `even-ai-settings.sh`(→ `even-ai-settings/cli.mjs`).
 - 설정 적용: `apply-persona-locale.sh`(성격 파일 4개 복사, 이름 리체, 언어·시간대 4키), `apply-live-tick-allowlist.mjs` + `lib/live-tick-allowlist.mjs`(tick 3키 + `plugins.allow`), `apply-memory.sh`(llama.cpp 플러그인, `memory.search.provider`, `browser.enabled`, 남은 `mcp.servers.aside` 제거), `apply-ego-browser.mjs` + `lib/ego-browser.mjs`(웹 도구 ego lite: `skills.entries.ego-browser.enabled` 한 키와 검사 4개, `--check`는 검사만, `--restart`는 통과 뒤 Gateway 재시작), `set-opencodex-key.sh`(사람 전용).
 - 검사: `check-live-tick-allowlist.mjs`, `public-safety-scan.sh`.
 - 백업·복원: `backup.sh`, `restore.sh`(Gateway를 멈춘 상태에서 복사한다. Even AI 설정 저장소는 Gateway 실행 중에 쓰면 덮어써질 수 있다).
 
-이 폴더의 범위가 아닌 것: 패치 감시자(`patch-watch.mjs`와 `patch-watch/`)는 이 폴더에 있지만 별도 단위다. 여기서는 그 래퍼(`patch-watch.sh`)만 다룬다. OcuClaw 주입 코드와 Even AI 설정 로직은 각 모듈에 있고 여기서 다시 구현하지 않는다. Tailscale serve, opencodex 설정, 모델 목록, OpenClaw·OcuClaw 버전은 어떤 스크립트도 바꾸지 않는다.
+이 폴더의 범위가 아닌 것: OcuClaw 주입 코드와 Even AI 설정 로직은 각 모듈에 있고 여기서 다시 구현하지 않는다. Tailscale serve, opencodex 설정, 모델 목록, OpenClaw·OcuClaw 버전은 어떤 스크립트도 바꾸지 않는다.
 
 ## 불변 조건
 

@@ -44,7 +44,7 @@
 
 ## 시험
 
-- 단위 시험: `/opt/homebrew/opt/node/bin/node --test ocuclaw-patch/test/ even-ai-settings/test/ scripts/lib/ scripts/patch-watch/`가 모두 통과해야 한다(지금 134개). 주입 코드, 다듬기 규칙, 허용 목록 계산, 감시 판단 로직, ego lite 판정을 바꾸면 이 명령을 돌린다.
+- 단위 시험: `/opt/homebrew/opt/node/bin/node --test ocuclaw-patch/test/ even-ai-settings/test/ scripts/lib/`가 모두 통과해야 한다(지금 111개). 주입 코드, 다듬기 규칙, 허용 목록 계산, ego lite 판정을 바꾸면 이 명령을 돌린다.
 - 다듬기 규칙(기호 정리·길이 정책)을 바꾸면 경계 사례 시험(정확히 350, 351, 경계 없음, `다.` 끝, 이모지만, 빈 답, `…` 중복)을 함께 고친다.
 - 패치 지점을 바꾸면 깨끗한 원본 사본 기준 시험(`ocuclaw-patch/test/patcher.test.mjs`: 원본은 전부 빠짐, 적용 후 통과, 두 번 적용해도 변화 없음, 훅 하나 지우면 그 지점만 지목, 기준 문자열 하나 없으면 아무것도 안 씀)이 통과해야 한다.
 - 설치본에 영향을 주는 변경은 단위 시험만으로 통과가 아니다. `scripts/ocuclaw-patch.sh all`(적용 → 재시작 → 검사 → `verify-live`)이 `verify-live: PASS`로 끝나야 한다.
@@ -52,10 +52,10 @@
 
 ## 스크립트 모양
 
-- 모든 적용·설치 명령은 다시 돌려도 결과가 같아야 한다. 바꿀 것이 없을 때 `already applied`를 찍고 아무것도 하지 않는 것은 `ocuclaw-patch.sh apply`·`all`과 `even-ai-settings.sh apply`(`patch-watch.sh install`은 `already installed`)이고, 나머지 적용 스크립트는 같은 값을 다시 쓴다. `apply-memory.sh`는 매번 Gateway를 재시작하고 색인을 다시 만든다(명령별 동작은 `docs/contracts.md`의 공통 약속).
+- 모든 적용·설치 명령은 다시 돌려도 결과가 같아야 한다. 바꿀 것이 없을 때 `already applied`를 찍고 아무것도 하지 않는 것은 `ocuclaw-patch.sh apply`·`all`과 `even-ai-settings.sh apply`이고, 나머지 적용 스크립트는 같은 값을 다시 쓴다. `apply-memory.sh`는 매번 Gateway를 재시작하고 색인을 다시 만든다(명령별 동작은 `docs/contracts.md`의 공통 약속).
 - 셸 진입점은 `scripts/*.sh`이고 POSIX `sh` + `set -eu`다. 로직이 있는 것은 Node ES 모듈(`.mjs`)로 쓰고, 입출력 없는 판단 로직은 별도 `lib` 파일로 떼어 시험한다.
 - Node 경로는 `NODE` 환경 변수, OpenClaw 경로는 `OPENCLAW` 환경 변수로 바꿀 수 있어야 한다. 셸·Node 스크립트 모두 같은 이름을 쓰고, `openclaw`를 PATH에서 바로 부르지 않는다. 기본값은 `/opt/homebrew/opt/node/bin/node`, `~/.local/bin/openclaw`.
-- 종료 코드는 의미가 있다. 검사 명령은 빠짐·불일치에 0이 아닌 고정 코드를 쓰고, 다른 스크립트(감시자)가 그 코드를 해석한다. 기존 코드의 뜻을 바꾸지 않는다.
+- 종료 코드는 의미가 있다. 검사 명령은 빠짐·불일치에 0이 아닌 고정 코드를 쓰고, 사람과 다른 스크립트(`ocuclaw-patch.sh all`)가 그 코드를 읽는다. 기존 코드의 뜻을 바꾸지 않는다.
 - 코드 주석·로그·CLI 출력은 영어, 사용자(휴대폰·안경)에게 보이는 문구는 한국어 반말이다.
 
 ## 커밋과 브랜치

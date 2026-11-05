@@ -9,27 +9,25 @@ openclaw-g2/
 ├── CLAUDE.md                          ← 이 파일(AGENTS.md와 같은 내용)
 ├── AGENTS.md                          ← 이 파일(CLAUDE.md와 같은 내용)
 ├── docs/
-│   ├── architecture.md                ← 구성 요소, 포트, Hey Even 요청 흐름, 주입 구조, 감시 흐름
-│   ├── business-rules.md              ← 리체의 말, 최종 답 결정, 기호·길이 정책, 오류 문구, 패치 상태, 알림 규칙
+│   ├── architecture.md                ← 구성 요소, 포트, Hey Even 요청 흐름, 주입 구조
+│   ├── business-rules.md              ← 리체의 말, 최종 답 결정, 기호·길이 정책, 오류 문구, 패치 상태
 │   ├── security.md                    ← 보호 자산, 접근 경로·인증, 권한(웹 도구 승인 정책 포함), 비밀값, 공개 규칙
 │   ├── standards.md                   ← 반드시 지킬 규칙: 공개 금지 항목, 설정 변경 방식, 주입 코드 규칙, 시험 게이트
 │   ├── engineering-notes.md           ← 잘림 원인, tick 키 버그, 허용 목록 함정, 설정 저장소 우선순위, 재적용 체크리스트
 │   ├── operations.md                  ← 설치 순서, 사람 단계, 재적용, 되돌리기, 검사 명령, 설정 키·환경 변수
-│   ├── contracts.md                   ← Even AI 응답 계약, CLI 하위 명령·출력·종료 코드, 휴대폰 알림 문구
+│   ├── contracts.md                   ← Even AI 응답 계약, CLI 하위 명령·출력·종료 코드
 │   └── tracking/
 │       ├── status.md                  ← 기능별 구현·검증 상태와 남은 일
 │       ├── decisions/
 │       │   ├── index.md               ← 결정 기록 목록
-│       │   └── NNNN-*.md              ← 개별 결정(패치 방식, 기록 기반 최종 답, 허용 목록, 알림만, Aside 자동 승인(대체됨), 전용 세션, tick 키, Aside 제거, ego lite 웹 도구)
+│       │   └── NNNN-*.md              ← 개별 결정(패치 방식, 기록 기반 최종 답, 허용 목록, 알림만(일부 대체됨), Aside 자동 승인(대체됨), 전용 세션, tick 키, Aside 제거, ego lite 웹 도구, 패치 감시자 제거)
 │       └── findings.md                ← 지금 풀 수 없는 문제와 그 이유
 ├── ocuclaw-patch/
 │   └── AGENTS.md                      ← OcuClaw 주입 코드·패처·실측 비교의 범위와 불변 조건
 ├── even-ai-settings/
 │   └── AGENTS.md                      ← Hey Even 라우팅·프롬프트를 config와 앱 안 저장소에 쓰는 규칙
 ├── scripts/
-│   ├── AGENTS.md                      ← 진입 스크립트, 설정 적용, 백업·복원, 공개 안전 검사
-│   └── patch-watch/
-│       └── AGENTS.md                  ← Gateway 시작 감지 → 패치 검사 → 휴대폰 알림 감시자
+│   └── AGENTS.md                      ← 진입 스크립트, 설정 적용, 백업·복원, 공개 안전 검사
 └── persona/                           ← 리체에게 주는 성격 파일 원본(개발 지침 아님)
 ```
 
@@ -50,7 +48,6 @@ openclaw-g2/
 - 항상: `docs/standards.md`, `docs/engineering-notes.md`, 고칠 폴더의 `AGENTS.md`.
 - 패치 지점·주입 코드를 고칠 때: `ocuclaw-patch/AGENTS.md`의 불변 조건과 훅이 기대는 OcuClaw 지역 변수, `docs/engineering-notes.md`의 잘림 원인과 "OcuClaw 업데이트 뒤" 체크리스트. 그 뒤 실제 설치본에서 `scripts/ocuclaw-patch.sh all`이 `verify-live: PASS`까지 가야 한다.
 - 안경 답의 모양(기호 정리, 350 코드포인트, 대체 순서, 오류 문구)을 바꿀 때: `docs/business-rules.md`의 Hey Even 절과 `docs/contracts.md`의 Even AI 엔드포인트 절. `verify-live`의 기대값도 같은 함수에서 나오므로 함께 바뀐다.
-- `check` 출력이나 종료 코드를 바꿀 때: `scripts/patch-watch/AGENTS.md`. 감시자가 그 형식을 해석한다.
 - Hey Even 프롬프트·라우팅을 바꿀 때: `even-ai-settings/AGENTS.md`(Gateway를 멈추고 써야 하는 이유).
 - 플러그인을 켜고 끄거나 tick 설정을 바꿀 때: `docs/engineering-notes.md`의 허용 목록·tick 키 항목.
 - 문서·스크립트에 경로·호스트·값을 적을 때: `docs/security.md`의 공개 저장소 규칙.
